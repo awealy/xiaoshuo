@@ -5,34 +5,237 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>香樟与蝉鸣 - 周子文与慕溪的故事</title>
     <style>
-        /* 移除章节导航的固定定位 */
-        .chapter-nav {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            /* 移除position: sticky和top属性 */
+        :root {
+            --primary-color: #5d93ff;
+            --secondary-color: #ff7e5d;
+            --text-color: #333;
+            --light-text: #666;
+            --bg-color: #f8f9fa;
+            --card-bg: #fff;
+            --border-color: #e1e4e8;
         }
         
-        /* 其他样式保持不变 */
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 章节导航样式 */
+        .chapter-nav {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+        
+        .chapter-nav h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.5rem;
+        }
+        
+        .chapters {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .chapter-link {
+            display: block;
+            padding: 8px 12px;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .chapter-link:hover {
+            background-color: rgba(93, 147, 255, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .character-info {
+            background-color: rgba(93, 147, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .character-info h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        
+        .character-info p {
+            margin-bottom: 8px;
+        }
+        
+        /* 章节内容样式 */
+        .chapter-content {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+        
+        .chapter-title {
+            color: var(--primary-color);
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.8rem;
+        }
+        
+        .chapter-text {
+            font-size: 1.1rem;
+            color: var(--text-color);
+        }
+        
+        .chapter-text p {
+            margin-bottom: 1.2em;
+            text-align: justify;
+        }
+        
+        .quote {
+            background-color: rgba(93, 147, 255, 0.05);
+            border-left: 4px solid var(--primary-color);
+            padding: 12px 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: var(--light-text);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .chapters {
+                grid-template-columns: 1fr;
+            }
+            
+            .chapter-content {
+                padding: 20px;
+            }
+        }
+        
+        /* 阅读进度指示器 */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+            z-index: 1000;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+        
+        /* 返回顶部按钮 */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--primary-color);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 999;
+        }
+        
+        .back-to-top.visible {
+            opacity: 1;
+        }
+        
+        /* 夜间模式切换按钮 */
+        .theme-toggle {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 999;
+            border: 1px solid var(--border-color);
+        }
     </style>
 </head>
 <body>
-    <!-- 只保留顶部的章节导航 -->
-    <div class="chapter-nav">
-        <h2>章节导航</h2>
-        <div class="chapters">
-            <a href="#chapter1" class="chapter-link">第一章 香樟与蝉鸣</a>
-            <a href="#chapter2" class="chapter-link">第二章 画夹里的秘密</a>
-            <a href="#chapter3" class="chapter-link">第三章 雨夜里的裂痕</a>
-            <a href="#chapter4" class="chapter-link">第四章 伞下的距离</a>
-            <a href="#chapter5" class="chapter-link">第五章 图书馆的偶遇</a>
-            <a href="#chapter6" class="chapter-link">第六章 跑道上的风与目光</a>
-            <a href="#chapter7" class="chapter-link">第七章 接力赛的意外</a>
-            <a href="#chapter8" class="chapter-link">第八章 医务室的独处</a>
-            <a href="#chapter9" class="chapter-link">第九章 琴键与画笔的协奏</a>
-            <a href="#chapter10" class="chapter-link">第十章 颜料与乐谱的争执</a>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    
+    <div class="container">
+        <!-- 章节导航 -->
+        <div class="chapter-nav">
+            <h2>章节导航</h2>
+            <div class="chapters">
+                <a href="#chapter1" class="chapter-link">第一章 香樟与蝉鸣</a>
+                <a href="#chapter2" class="chapter-link">第二章 画夹里的秘密</a>
+                <a href="#chapter3" class="chapter-link">第三章 雨夜里的裂痕</a>
+                <a href="#chapter4" class="chapter-link">第四章 伞下的距离</a>
+                <a href="#chapter5" class="chapter-link">第五章 图书馆的偶遇</a>
+                <a href="#chapter6" class="chapter-link">第六章 跑道上的风与目光</a>
+                <a href="#chapter7" class="chapter-link">第七章 接力赛的意外</a>
+                <a href="#chapter8" class="chapter-link">第八章 医务室的独处</a>
+                <a href="#chapter9" class="chapter-link">第九章 琴键与画笔的协奏</a>
+                <a href="#chapter10" class="chapter-link">第十章 颜料与乐谱的争执</a>
+            </div>
+            
+             <div class="chapter-nav">
+            <h2>章节导航</h2>
+            <div class="chapters">
+                <a href="#chapter1" class="chapter-link">第一章 香樟与蝉鸣</a>
+                <a href="#chapter2" class="chapter-link">第二章 画夹里的秘密</a>
+                <a href="#chapter3" class="chapter-link">第三章 雨夜里的裂痕</a>
+                <a href="#chapter4" class="chapter-link">第四章 伞下的距离</a>
+                <a href="#chapter5" class="chapter-link">第五章 图书馆的偶遇</a>
+                <a href="#chapter6" class="chapter-link">第六章 跑道上的风与目光</a>
+                <a href="#chapter7" class="chapter-link">第七章 接力赛的意外</a>
+                <a href="#chapter8" class="chapter-link">第八章 医务室的独处</a>
+                <a href="#chapter9" class="chapter-link">第九章 琴键与画笔的协奏</a>
+                <a href="#chapter10" class="chapter-link">第十章 颜料与乐谱的争执</a>
+            </div>
         </div>
         
         <div class="character-info">
@@ -864,8 +1067,69 @@
                 <p>也许他们之间的问题永远存在，也许未来还会有更多的争执，但至少此刻，他们选择拥抱彼此，选择相信那份藏在心底的、比月光更温柔的羁绊。
             </p>
         </div>
+        
     </div>
     
-    <!-- 其他内容保持不变 -->
+    <div class="back-to-top" id="backToTop">↑</div>
+    <div class="theme-toggle" id="themeToggle">🌙</div>
+    
+    <script>
+        // 阅读进度条
+        window.onscroll = function() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById("progressBar").style.width = scrolled + "%";
+            
+            // 显示/隐藏返回顶部按钮
+            if (winScroll > 300) {
+                document.getElementById("backToTop").classList.add('visible');
+            } else {
+                document.getElementById("backToTop").classList.remove('visible');
+            }
+        };
+        
+        // 返回顶部功能
+        document.getElementById('backToTop').addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 夜间模式切换
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            const body = document.body;
+            const isDark = body.classList.contains('dark-mode');
+            
+            if (isDark) {
+                body.classList.remove('dark-mode');
+                this.textContent = '🌙';
+            } else {
+                body.classList.add('dark-mode');
+                this.textContent = '☀️';
+            }
+        });
+        
+        // 添加夜间模式样式
+        const style = document.createElement('style');
+        style.textContent = `
+            .dark-mode {
+                --text-color: #e1e1e1;
+                --light-text: #a0a0a0;
+                --bg-color: #1a1a1a;
+                --card-bg: #2d2d2d;
+                --border-color: #444;
+                --primary-color: #7aa6ff;
+                --secondary-color: #ff9e7a;
+            }
+            
+            .dark-mode .chapter-nav,
+            .dark-mode .chapter-content {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>
