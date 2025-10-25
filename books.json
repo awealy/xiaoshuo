@@ -7,7 +7,13 @@
       "chapters": [
         { "title": "1-10章", "path": "xs/name/zhoushao/1-10.md" },
         { "title": "11-20章", "path": "xs/name/zhoushao/11-20.md" },
-        { "title": "21-30章", "path": "xs/name/zhoushao/21-30.md" },
+        { "title": "21-30章", "path": "xs/name/zhoushao/21-30.md" }
+       
+      ] 
+      "slug": "cxy",
+      "title": "陈星宇",
+      "author": "awealy",
+      "chapters": [
         { "title": "第一章 意外闯入的世界", "path": "xs/name/cxy/第1章 意外闯入的世界.md" },
         { "title": "第二章 深入工厂", "path": "xs/name/cxy/第二章 深入工厂.md" },
         { "title": "第三章 主控室的危机", "path": "xs/name/cxy/第三章 主控室的危机.md" },
