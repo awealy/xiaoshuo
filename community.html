@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社区 | 小说阅读站</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      background-color: #fafafa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #111;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      font-size: 1.5rem;
+    }
+    nav a {
+      color: #fff;
+      margin-left: 1rem;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+    nav a:hover {
+      color: #4CAF50;
+    }
+    main {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 1rem;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .comment-box {
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>小说阅读社区</h1>
+    <nav>
+      <a href="index.html">首页</a>
+      <a href="chapters.html">章节</a>
+      <a href="community.html">社区</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>欢迎来到小说交流区 💬</h2>
+    <p>在这里你可以分享读书心得、推荐小说、讨论剧情、提出建议！</p>
+
+    <div class="comment-box">
+      <h3>发表评论</h3>
+      <!-- Utterances 评论系统 -->
+      <script src="https://utteranc.es/client.js"
+              repo="awealy/xiaoshuo"
+              issue-term="pathname"
+              label="💬 评论"
+              theme="github-light"
+              crossorigin="anonymous"
+              async>
+      </script>
+    </div>
+  </main>
+</body>
+</html>
