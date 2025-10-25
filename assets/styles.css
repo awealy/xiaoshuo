@@ -1,0 +1,7 @@
+/* 基础微调：配合 Tailwind 使用 */
+.prose img { max-width: 100%; height: auto; border-radius: 6px; }
+body.dark { background: #0b1220; color: #cbd5e1; }
+body.dark .prose { color: #cbd5e1; }
+#content { transition: font-size .15s ease, line-height .15s ease; }
+/* 阅读窄列模式 */
+.read-mode #content { max-width: 42rem; margin-inline: auto; font-size: 18px; line-height: 1.9; }
