@@ -54,6 +54,30 @@
           <button id="next-ch" class="px-3 py-1 border rounded">下一章</button>
         </div>
       </div>
+      <!-- 评论组件开始 -->
+      <section id="community-comments" class="bg-white p-4 rounded shadow-sm mt-6">
+        <h3 class="text-lg font-semibold mb-2">评论社区</h3>
+      
+        <div id="comment-form" class="mb-4">
+          <input id="cc-name" placeholder="昵称（必填）" class="w-full px-3 py-2 border rounded mb-2" />
+          <input id="cc-email" placeholder="邮箱（可选）" class="w-full px-3 py-2 border rounded mb-2" />
+          <textarea id="cc-content" placeholder="写下你的评论..." class="w-full px-3 py-2 border rounded mb-2" rows="4"></textarea>
+          <div class="flex items-center gap-2">
+            <button id="cc-submit" class="px-4 py-2 rounded bg-indigo-600 text-white">发表评论</button>
+            <button id="cc-save-draft" class="px-3 py-2 border rounded">保存草稿</button>
+            <span id="cc-status" class="text-sm text-gray-500"></span>
+          </div>
+        </div>
+      
+        <div id="comments-list" class="space-y-4"></div>
+      
+        <div class="mt-4 flex items-center justify-between">
+          <button id="load-more" class="px-3 py-1 border rounded">加载更多</button>
+          <div class="text-sm text-gray-500" id="comments-count"></div>
+        </div>
+      </section>
+      <!-- 评论组件结束 -->
+      
 
       <div class="h-1 bg-gray-200 rounded mb-4">
         <div id="progress" class="h-1 bg-indigo-500 rounded w-0"></div>
@@ -90,4 +114,5 @@
   <script src="assets/app.js"></script>
 </body>
 </html>
+
 
