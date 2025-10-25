@@ -6,11 +6,11 @@
 
 /* ============ 配置区 ============ */
 /* 在部署时把下面两个值替换为你的 Supabase 项目 URL 与 anon 公钥 */
-const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR-ANON-KEY';
+const SUPABASE_URL = 'https://cqmusijxssqzcqiztier.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxbXVzaWp4c3NxemNxaXp0aWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzNzA1NjUsImV4cCI6MjA3Njk0NjU2NX0.JIXOR1i5q8llCyMncegMfO3jw5-1a4npB5ZOAD4jVSw';
 /* 这里的 context 标识当前页面的书籍/章节，必须与你 books.json / 文章标识一致 */
-const PAGE_BOOK_SLUG = window.PAGE_BOOK_SLUG || 'example-novel';
-const PAGE_CHAPTER_PATH = window.PAGE_CHAPTER_PATH || 'books/example-novel/01-起始.md';
+const PAGE_BOOK_SLUG = window.PAGE_BOOK_SLUG || 'xs/name';
+const PAGE_CHAPTER_PATH = window.PAGE_CHAPTER_PATH || 'xs/name/zhoushao/1-10.md';
 /* 每页加载数量 */
 const PAGE_SIZE = 10;
 
