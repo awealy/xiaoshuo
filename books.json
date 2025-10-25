@@ -1,0 +1,14 @@
+{
+  "books": [
+    {
+      "slug": "zhoushao",
+      "title": "周少&慕溪",
+      "author": "***",
+      "chapters": [
+        { "title": "1-10章", "path": "xs/name/zhoushao/1-10.md" },
+        { "title": "11-20章", "path": "xs/name/zhoushao/11-20.md" }
+        { "title": "21-30章", "path": "xs/name/zhoushao/21-30.md" }
+      ]
+    }
+  ]
+}
