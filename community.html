@@ -1,81 +1,95 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>社区 | 小说阅读站</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      font-family: "Microsoft YaHei", sans-serif;
-      background-color: #fafafa;
-      color: #333;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #111;
-      color: #fff;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header h1 {
-      font-size: 1.5rem;
-    }
-    nav a {
-      color: #fff;
-      margin-left: 1rem;
-      text-decoration: none;
-      transition: 0.3s;
-    }
-    nav a:hover {
-      color: #4CAF50;
-    }
-    main {
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 1rem;
-      background: #fff;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      border-radius: 10px;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    .comment-box {
-      margin-top: 2rem;
-    }
-  </style>
+  <meta charset="utf-8">
+  <title>社区中心 - 小说阅读平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
 </head>
-<body>
-  <header>
-    <h1>小说阅读社区</h1>
-    <nav>
-      <a href="index.html">首页</a>
-      <a href="chapters.html">章节</a>
-      <a href="community.html">社区</a>
-    </nav>
+<body class="bg-gray-100">
+  <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+    <h1 class="text-xl font-semibold">社区中心</h1>
+    <a href="index.html" class="px-3 py-1 border rounded hover:bg-gray-100">返回首页</a>
   </header>
 
-  <main>
-    <h2>欢迎来到小说交流区 💬</h2>
-    <p>在这里你可以分享读书心得、推荐小说、讨论剧情、提出建议！</p>
+  <main class="max-w-5xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- 群聊 -->
+    <section class="bg-white p-4 rounded shadow-md col-span-2">
+      <h2 class="text-lg font-bold mb-3">公共群聊</h2>
+      <div id="chat-box" class="border p-3 h-80 overflow-y-auto bg-gray-50 rounded text-sm"></div>
+      <div class="flex mt-3">
+        <input id="chat-input" class="flex-1 border rounded-l px-2 py-1" placeholder="说点什么..." />
+        <button id="send-chat" class="bg-indigo-500 text-white px-4 rounded-r">发送</button>
+      </div>
+    </section>
 
-    <div class="comment-box">
-      <h3>发表评论</h3>
-      <!-- Utterances 评论系统 -->
-      <script src="https://utteranc.es/client.js"
-              repo="awealy/xiaoshuo"
-              issue-term="pathname"
-              label="💬 评论"
-              theme="github-light"
-              crossorigin="anonymous"
-              async>
-      </script>
-    </div>
+    <!-- 私信 -->
+    <section class="bg-white p-4 rounded shadow-md">
+      <h2 class="text-lg font-bold mb-3">私信</h2>
+      <input id="receiver" class="w-full border px-2 py-1 rounded mb-2" placeholder="对方用户名">
+      <textarea id="pm-input" class="w-full border rounded p-2 text-sm mb-2" rows="3" placeholder="输入私信内容"></textarea>
+      <button id="send-pm" class="w-full bg-green-500 text-white rounded py-1">发送私信</button>
+      <div id="pm-list" class="mt-3 text-sm text-gray-600 overflow-y-auto max-h-60"></div>
+    </section>
   </main>
+
+  <script>
+    const SUPABASE_URL = "https://你的项目.supabase.co";
+    const SUPABASE_KEY = "你的anon公钥";
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const userName = prompt("请输入你的昵称：") || "匿名";
+
+    // 加载群聊消息
+    async function loadChat() {
+      const { data } = await supabase.from("messages").select("*").eq("room", "public").order("created_at", { ascending: true });
+      const box = document.getElementById("chat-box");
+      box.innerHTML = data.map(m => `<p><b>${m.user_name}：</b>${m.message}</p>`).join("");
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // 发送群聊
+    document.getElementById("send-chat").onclick = async () => {
+      const msg = document.getElementById("chat-input").value.trim();
+      if (!msg) return;
+      await supabase.from("messages").insert([{ room: "public", user_name: userName, message: msg }]);
+      document.getElementById("chat-input").value = "";
+      loadChat();
+    };
+
+    // 实时监听群聊更新
+    supabase.channel("room_public")
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, loadChat)
+      .subscribe();
+
+    loadChat();
+
+    // 发送私信
+    document.getElementById("send-pm").onclick = async () => {
+      const receiver = document.getElementById("receiver").value.trim();
+      const msg = document.getElementById("pm-input").value.trim();
+      if (!receiver || !msg) return alert("请填写接收者和消息内容");
+      await supabase.from("private_messages").insert([{ sender: userName, receiver, message: msg }]);
+      document.getElementById("pm-input").value = "";
+      loadPM();
+    };
+
+    // 加载私信
+    async function loadPM() {
+      const { data } = await supabase.from("private_messages")
+        .select("*")
+        .or(`sender.eq.${userName},receiver.eq.${userName}`)
+        .order("created_at", { ascending: true });
+      document.getElementById("pm-list").innerHTML =
+        data.map(m => `<p><b>${m.sender} → ${m.receiver}：</b>${m.message}</p>`).join("");
+    }
+
+    // 实时监听私信
+    supabase.channel("private_messages")
+      .on("postgres_changes", { event: "*", schema: "public", table: "private_messages" }, loadPM)
+      .subscribe();
+
+    loadPM();
+  </script>
 </body>
 </html>
