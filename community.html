@@ -1,42 +1,61 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>同人文社区 | 交流与评论</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>社区 - 小说平台</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <meta name="robots" content="noindex"> <!-- 可选，避免索引测试页面 -->
+  <style>
+    .reply-box { margin-left: 1.25rem; border-left: 2px solid #eee; padding-left: .75rem; }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-900">
-
-  <header class="bg-white shadow-sm sticky top-0 z-30">
-    <div class="mx-auto max-w-5xl p-4 flex items-center justify-between">
-      <a href="index.html" class="text-xl font-semibold">🏠 返回阅读主页</a>
-      <h1 class="text-lg font-medium">社区交流区</h1>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+  <header class="bg-white shadow p-4">
+    <div class="max-w-5xl mx-auto flex justify-between items-center">
+      <a href="index.html" class="text-lg font-semibold">← 返回首页</a>
+      <h1 class="text-xl font-bold">社区交流</h1>
+      <div></div>
     </div>
   </header>
 
-  <main class="mx-auto max-w-3xl p-4">
-    <section class="bg-white p-6 rounded shadow-sm mb-8">
-      <h2 class="text-xl font-semibold mb-4">发表评论</h2>
-      <form id="comment-form" class="space-y-3">
-        <input id="author" placeholder="昵称（必填）" class="border px-3 py-2 w-full rounded">
-        <input id="chapter_path" placeholder="章节路径（例如 xs/name/zhoushao/1-10.md）" class="border px-3 py-2 w-full rounded">
-        <textarea id="content" rows="3" placeholder="写下你的评论..." class="border px-3 py-2 w-full rounded"></textarea>
-        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">发布</button>
-      </form>
+  <main class="max-w-5xl mx-auto p-4 grid gap-6">
+    <!-- 说明 / 自动章节识别示例 -->
+    <section class="bg-white p-4 rounded shadow">
+      <p class="text-sm text-gray-500">提示：若你在章节页使用，请在该页面加入脚本：
+        <code>window.BOOK_SLUG='zhoushao'; window.CHAPTER_PATH='xs/name/zhoushao/1-10.md'</code>
+        或在 community.html 手动输入章节路径发布评论。
+      </p>
     </section>
 
-    <section id="comment-list" class="bg-white p-6 rounded shadow-sm">
-      <h2 class="text-xl font-semibold mb-4">最新评论</h2>
-      <div id="comments"></div>
+    <!-- 发布评论 -->
+    <section class="bg-white p-4 rounded shadow" id="post-area">
+      <h2 class="font-semibold text-lg mb-2">发布评论 / 回复</h2>
+
+      <div class="grid gap-2">
+        <input id="author" placeholder="昵称（必填）" class="border px-3 py-2 rounded" />
+        <input id="chapter-input" placeholder="章节路径（自动检测或填写）" class="border px-3 py-2 rounded" />
+        <textarea id="content" rows="4" placeholder="写下你的评论..." class="border px-3 py-2 rounded"></textarea>
+        <div class="flex gap-2">
+          <button id="send-btn" class="px-4 py-2 bg-indigo-600 text-white rounded">发布</button>
+          <button id="clear-draft" class="px-4 py-2 border rounded">清空草稿</button>
+          <div id="post-status" class="text-sm text-gray-500 self-center"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 评论列表 -->
+    <section class="bg-white p-4 rounded shadow">
+      <h2 class="font-semibold text-lg mb-2">最新评论（实时更新）</h2>
+      <div id="comments-root" class="space-y-3 text-sm text-gray-800">
+        <p class="text-gray-400">正在加载评论…</p>
+      </div>
     </section>
   </main>
 
-  <footer class="mt-8 p-4 text-center text-sm text-gray-500">
-    © 2025 同人文社区 - awealy
-  </footer>
+  <footer class="text-center text-sm text-gray-500 p-4">© 2025 awealy</footer>
 
-  <script src="assets/comments.js"></script>
+  <script src="assets/comments.js" defer></script>
 </body>
 </html>
