@@ -197,6 +197,22 @@
     // 自动装载 utterances（如果你想用）
     // loadUtterances(); // uncomment and configure if using utterances
   })();
+async function loadComments(bookSlug, chapterTitle) {
+  const { data } = await supabase.from("comments")
+    .select("*")
+    .eq("book_slug", bookSlug)
+    .eq("chapter_title", chapterTitle)
+    .order("created_at", { ascending: true });
+  const section = document.getElementById("comments");
+  section.innerHTML = data.map(c => `<p><b>${c.user_name}</b>：${c.content}</p>`).join("") +
+    `<div class="mt-3"><input id="new-comment" class="border px-2 py-1 w-2/3 rounded" placeholder="发表评论"/><button id="send-comment" class="ml-2 px-3 py-1 bg-indigo-500 text-white rounded">发布</button></div>`;
+  document.getElementById("send-comment").onclick = async () => {
+    const val = document.getElementById("new-comment").value.trim();
+    if (!val) return;
+    await supabase.from("comments").insert([{ book_slug: bookSlug, chapter_title: chapterTitle, user_name, content: val }]);
+    loadComments(bookSlug, chapterTitle);
+  };
+}
 
   // Utterances 评论集成示例（使用前请在 GitHub 创建 issues 并配置）
   function loadUtterances() {
