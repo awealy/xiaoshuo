@@ -1,8 +1,9 @@
 // ======== Supabase 初始化 ========
-// const SUPABASE_URL = "https://cqmusijxssqzcqiztier.supabase.co"; // ← 改这里
-// const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxbXVzaWp4c3NxemNxaXp0aWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzNzA1NjUsImV4cCI6MjA3Njk0NjU2NX0.JIXOR1i5q8llCyMncegMfO3jw5-1a4npB5ZOAD4jVSw";                        // ← 改这里
+const SUPABASE_URL = "https://cqmusijxssqzcqiztier.supabase.co"; // ← 改这里
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxbXVzaWp4c3NxemNxaXp0aWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzNzA1NjUsImV4cCI6MjA3Njk0NjU2NX0.JIXOR1i5q8llCyMncegMfO3jw5-1a4npB5ZOAD4jVSw";                        // ← 改这里
 
-// const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// 正确初始化 Supabase 客户端
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // // -------------------------------------------------------------------
 
 // DOM
