@@ -1,113 +1,144 @@
-
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>更新日志 - 同人文创作与分享平台</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>更新日志 - 同人文创作平台</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .fade-in { animation: fadein 0.5s ease-in-out; }
+    @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+  </style>
 </head>
+
 <body class="bg-gray-50 text-gray-900">
-  <header class="bg-white shadow-sm sticky top-0 z-30">
+  <!-- 顶部导航 -->
+  <header class="bg-white shadow sticky top-0 z-30">
     <div class="max-w-5xl mx-auto p-4 flex justify-between items-center">
-      <h1 class="text-xl font-semibold">更新日志</h1>
-      <a href="../index.html" class="px-3 py-1 border rounded hover:bg-gray-100">返回首页</a>
+      <h1 class="text-xl font-bold">更新日志 (Changelog)</h1>
+      <nav class="flex gap-3">
+        <a href="../index.html" class="px-3 py-1 border rounded hover:bg-gray-100">返回首页</a>
+        <button id="refresh" class="px-3 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600">🔄 刷新日志</button>
+      </nav>
     </div>
   </header>
 
-  <main class="max-w-5xl mx-auto p-6 space-y-8">
-    <section class="bg-white p-6 rounded shadow-sm">
-      <h2 class="text-2xl font-bold mb-4 text-indigo-600">📚 项目信息</h2>
-      <p><strong>项目名称：</strong>同人文创作与分享平台</p>
-      <p><strong>仓库地址：</strong><a href="https://github.com/awealy/xiaoshuo" target="_blank" class="text-indigo-500 hover:underline">github.com/awealy/xiaoshuo</a></p>
-      <p><strong>更新时间：</strong>2025 年 10 月 26 日</p>
-      <p><strong>维护人：</strong>awealy</p>
+  <!-- 主体 -->
+  <main class="max-w-5xl mx-auto p-6 space-y-6" id="main">
+    <section class="bg-white p-6 rounded shadow-sm text-center">
+      <h2 class="text-2xl font-semibold mb-2 text-indigo-600">📘 项目信息</h2>
+      <p><strong>仓库：</strong> <a href="https://github.com/awealy/xiaoshuo" class="text-indigo-500 hover:underline">awealy/xiaoshuo</a></p>
+      <p id="update-time" class="text-gray-500">正在获取最新更新...</p>
     </section>
 
-    <section class="bg-white p-6 rounded shadow-sm">
-      <h2 class="text-xl font-semibold mb-3 text-green-600">🧱 v1.0 → v2.0：阅读器系统重构</h2>
-      <ul class="list-disc pl-6 space-y-2">
-        <li>重构整体结构，将小说文件统一组织为 <code>xs/name/{slug}/{chapter}.md</code>。</li>
-        <li>修复 <code>books.json</code> 语法错误，确保章节正常加载。</li>
-        <li>新增 <code>marked.js</code> + <code>highlight.js</code> 支持 Markdown 渲染与代码高亮。</li>
-        <li>添加章节导航按钮「上一章 / 下一章」并实现动态切换。</li>
-        <li>引入 Tailwind CSS 进行现代化布局优化，全面提升视觉体验。</li>
-        <li>优化移动端阅读体验，自动适配屏幕宽度。</li>
-        <li>添加夜间模式与字体大小调节功能。</li>
-      </ul>
-    </section>
-
-    <section class="bg-white p-6 rounded shadow-sm">
-      <h2 class="text-xl font-semibold mb-3 text-blue-600">💬 v2.0 → v2.1：评论与互动上线</h2>
-      <ul class="list-disc pl-6 space-y-2">
-        <li>集成 <strong>Supabase</strong> 数据库，实现用户评论存储与实时刷新。</li>
-        <li>每章节下方可发表评论，自动显示时间与用户昵称。</li>
-        <li>评论模块独立封装至 <code>assets/comments.js</code>。</li>
-        <li>支持本地昵称记忆（使用 localStorage）。</li>
-        <li>新增 <code>comments</code> 数据表结构：
-          <pre class="bg-gray-100 p-2 rounded text-sm">
-book_slug | chapter_title | user_name | content | created_at</pre>
-        </li>
-      </ul>
-    </section>
-
-    <section class="bg-white p-6 rounded shadow-sm">
-      <h2 class="text-xl font-semibold mb-3 text-purple-600">🌐 v2.2：社区系统上线</h2>
-      <ul class="list-disc pl-6 space-y-2">
-        <li>新增 <code>community.html</code> 社区主页。</li>
-        <li>支持两种交互模式：
-          <ul class="list-disc pl-6">
-            <li>💭 群聊频道（实时更新，基于 Supabase Realtime）</li>
-            <li>📩 用户私信（点对点消息存储）</li>
-          </ul>
-        </li>
-        <li>新增数据库表：
-          <pre class="bg-gray-100 p-2 rounded text-sm">
-messages (room, user_name, message, created_at)
-private_messages (sender, receiver, message, created_at)</pre>
-        </li>
-        <li>消息实时监听：新消息自动推送至页面，无需刷新。</li>
-        <li>用户可自定义昵称，自动保存在浏览器。</li>
-        <li>主页面导航栏新增「社区」跳转入口。</li>
-      </ul>
-    </section>
-
-    <section class="bg-white p-6 rounded shadow-sm">
-      <h2 class="text-xl font-semibold mb-3 text-yellow-600">⚙️ v2.3：性能与结构优化</h2>
-      <ul class="list-disc pl-6 space-y-2">
-        <li>优化 <code>app.js</code> 模块逻辑，提升章节加载速度。</li>
-        <li>增加错误捕获与提示（例如 <code>加载书目失败</code> 时的友好提示）。</li>
-        <li>重构文件结构：
-          <pre class="bg-gray-100 p-2 rounded text-sm">
-xiaoshuo/
- ├── index.html
- ├── community.html
- ├── gx/index.html
- ├── books.json
- ├── xs/
- └── assets/
-      ├── app.js
-      ├── comments.js
-      ├── community.js
-      ├── styles.css</pre>
-        </li>
-        <li>兼容 GitHub Pages 自动部署（默认 branch: main）。</li>
-      </ul>
-    </section>
-
-    <section class="bg-white p-6 rounded shadow-sm">
-      <h2 class="text-xl font-semibold mb-3 text-red-600">🪶 v2.4（计划中）</h2>
-      <ul class="list-disc pl-6 space-y-2">
-        <li>✨ 用户系统：绑定 Supabase Auth 实现登录注册。</li>
-        <li>🏷️ 收藏与点赞功能。</li>
-        <li>🗂️ 搜索与书架视图。</li>
-        <li>🧠 AI 辅助创作区（文本自动续写）。</li>
-      </ul>
+    <section id="log-section" class="bg-white p-6 rounded shadow-sm">
+      <h2 class="text-xl font-semibold mb-3 text-gray-700">提交记录</h2>
+      <div id="log-list" class="space-y-4 text-gray-700">
+        <p>正在加载提交记录...</p>
+      </div>
     </section>
   </main>
 
+  <!-- 页脚 -->
   <footer class="text-center text-sm text-gray-500 p-4 border-t">
-    © 2025 awealy | 更新日志页面（gx/index.html）
+    © 2025 awealy | 自动生成日志 (gx/index.html)
   </footer>
+
+  <script>
+    const logList = document.getElementById("log-list");
+    const updateTime = document.getElementById("update-time");
+    const refreshBtn = document.getElementById("refresh");
+
+    const typeEmoji = {
+      feat: "🚀 新功能",
+      fix: "🐞 修复",
+      docs: "📝 文档",
+      style: "🎨 样式",
+      refactor: "🔧 重构",
+      test: "✅ 测试",
+      chore: "📦 构建",
+      other: "🌀 其他"
+    };
+
+    const typeStyle = {
+      feat: "text-green-600 font-semibold",
+      fix: "text-red-600 font-semibold",
+      docs: "text-blue-600",
+      style: "text-amber-600",
+      refactor: "text-purple-600",
+      test: "text-gray-600",
+      chore: "text-gray-400",
+      other: "text-slate-700"
+    };
+
+    async function fetchCommits() {
+      logList.innerHTML = `<p class="text-gray-400">⏳ 正在从 GitHub 获取最新提交...</p>`;
+      try {
+        const res = await fetch("https://api.github.com/repos/awealy/xiaoshuo/commits?per_page=50");
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error("返回异常");
+
+        const grouped = {};
+        data.forEach(commit => {
+          const msg = commit.commit.message;
+          const type = detectType(msg);
+          if (!grouped[type]) grouped[type] = [];
+          grouped[type].push({
+            sha: commit.sha.substring(0, 7),
+            date: commit.commit.author.date.split("T")[0],
+            message: msg,
+            url: commit.html_url
+          });
+        });
+
+        renderGrouped(grouped);
+        updateTime.textContent = "最后更新时间：" + new Date().toLocaleString("zh-CN");
+
+      } catch (err) {
+        console.error(err);
+        logList.innerHTML = `<p class="text-red-500">❌ 加载失败，请稍后再试。</p>`;
+      }
+    }
+
+    function detectType(message) {
+      const lower = message.toLowerCase();
+      if (lower.startsWith("feat")) return "feat";
+      if (lower.startsWith("fix")) return "fix";
+      if (lower.startsWith("docs")) return "docs";
+      if (lower.startsWith("style")) return "style";
+      if (lower.startsWith("refactor")) return "refactor";
+      if (lower.startsWith("test")) return "test";
+      if (lower.startsWith("chore")) return "chore";
+      return "other";
+    }
+
+    function renderGrouped(grouped) {
+      logList.innerHTML = "";
+      Object.keys(grouped).forEach(type => {
+        const commits = grouped[type];
+        const section = document.createElement("div");
+        section.className = "fade-in";
+        section.innerHTML = `
+          <h3 class="text-lg mb-2 ${typeStyle[type]}">${typeEmoji[type]}</h3>
+          <ul class="divide-y divide-gray-200 mb-6">
+            ${commits.map(c => `
+              <li class="py-2 hover:bg-gray-50 px-2 rounded">
+                <div class="flex justify-between items-center">
+                  <a href="${c.url}" target="_blank" class="font-mono text-sm text-gray-400">${c.sha}</a>
+                  <span class="text-sm text-gray-400">${c.date}</span>
+                </div>
+                <p class="mt-1 ${typeStyle[type]}">${c.message}</p>
+              </li>
+            `).join("")}
+          </ul>
+        `;
+        logList.appendChild(section);
+      });
+    }
+
+    // 初次加载
+    fetchCommits();
+    refreshBtn.addEventListener("click", fetchCommits);
+  </script>
 </body>
 </html>
