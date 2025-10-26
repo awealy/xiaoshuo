@@ -33,7 +33,6 @@
       <button id="open-menu" class="md:hidden">☰</button>
     </div>
   </header>
-<a href="gx/login.html" style="float:right;margin:10px;">登录</a>
 
   <main class="mx-auto max-w-5xl p-4 grid grid-cols-1 md:grid-cols-[320px,1fr] gap-6">
     <!-- 左侧：书目目录 -->
@@ -46,6 +45,20 @@
     </aside>
 
     <!-- 阅读器 -->
+    <div id="user-info"></div>
+    <script>
+      const supabase = supabase.createClient("https://xxxx.supabase.co", "你的 anon key");
+      async function showUser() {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user) {
+          document.getElementById('user-info').innerHTML = `
+            <p>欢迎回来，${data.user.email || data.user.user_metadata.full_name}</p>
+          `;
+        }
+      }
+      showUser();
+    </script>
+
     <article class="bg-white p-6 rounded shadow-sm" id="reader">
       <div class="mb-2 flex items-center justify-between gap-4">
         <div>
@@ -100,6 +113,7 @@
   <script src="assets/app.js"></script>
 </body>
 </html>
+
 
 
 
