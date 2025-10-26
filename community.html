@@ -2,47 +2,41 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <title>同人文社区</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>同人文社区 | 交流与评论</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-  <script src="assets/comments.js" defer></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-50 text-gray-900">
 
-  <header class="bg-white shadow-sm p-4 flex justify-between items-center">
-    <a href="index.html" class="font-bold text-xl">同人文社区</a>
-    <nav class="flex gap-3">
-      <a href="index.html" class="hover:text-indigo-600">首页</a>
-      <a href="community.html" class="text-indigo-600 font-semibold">社区</a>
-      <a href="gx/index.html" class="hover:text-indigo-600">更新日志</a>
-    </nav>
+  <header class="bg-white shadow-sm sticky top-0 z-30">
+    <div class="mx-auto max-w-5xl p-4 flex items-center justify-between">
+      <a href="index.html" class="text-xl font-semibold">🏠 返回阅读主页</a>
+      <h1 class="text-lg font-medium">社区交流区</h1>
+    </div>
   </header>
 
-  <main class="max-w-3xl mx-auto mt-8 p-4 bg-white rounded-lg shadow">
-    <h1 class="text-2xl font-bold mb-4">💬 小说社区</h1>
-    <p class="text-gray-500 mb-6">在这里分享你的想法，评论小说，与其他读者互动。</p>
+  <main class="mx-auto max-w-3xl p-4">
+    <section class="bg-white p-6 rounded shadow-sm mb-8">
+      <h2 class="text-xl font-semibold mb-4">发表评论</h2>
+      <form id="comment-form" class="space-y-3">
+        <input id="author" placeholder="昵称（必填）" class="border px-3 py-2 w-full rounded">
+        <input id="chapter_path" placeholder="章节路径（例如 xs/name/zhoushao/1-10.md）" class="border px-3 py-2 w-full rounded">
+        <textarea id="content" rows="3" placeholder="写下你的评论..." class="border px-3 py-2 w-full rounded"></textarea>
+        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">发布</button>
+      </form>
+    </section>
 
-    <!-- 评论输入区 -->
-    <div id="comment-box" class="mb-6">
-      <textarea id="new-comment" placeholder="写下你的想法..." class="w-full border rounded p-2 text-sm"></textarea>
-      <div class="flex justify-end mt-2">
-        <button id="send-comment" class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700">
-          发布评论
-        </button>
-      </div>
-    </div>
-
-    <hr class="my-4">
-
-    <!-- 评论列表 -->
-    <section id="comments">
-      <p class="text-gray-400">加载评论中...</p>
+    <section id="comment-list" class="bg-white p-6 rounded shadow-sm">
+      <h2 class="text-xl font-semibold mb-4">最新评论</h2>
+      <div id="comments"></div>
     </section>
   </main>
 
-  <footer class="text-center text-gray-400 text-sm mt-8 mb-4">
-    © 2025 同人文社区 | Powered by Supabase
+  <footer class="mt-8 p-4 text-center text-sm text-gray-500">
+    © 2025 同人文社区 - awealy
   </footer>
+
+  <script src="assets/comments.js"></script>
 </body>
 </html>
