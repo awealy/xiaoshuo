@@ -1,106 +1,115 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>同人文创作与分享平台 — 阅读器</title>
-    <meta name="description" content="现代化 Markdown 驱动的阅读器" />
-    <!-- Tailwind (dev CDN ok for prototype) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>同人文创作与分享平台 — 阅读器</title>
+  <meta name="description" content="现代化 Markdown 驱动的阅读器" />
 
-    <!-- Marked & highlight.js -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/default.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
+  <!-- Tailwind CDN (开发/演示使用；生产建议使用 Tailwind CLI 构建) -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <link rel="stylesheet" href="assets/styles.css" />
+  <!-- Marked, highlight.js -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/default.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
 
-    <!-- Supabase SDK - 必须在自定义脚本前加载 -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <link rel="stylesheet" href="assets/styles.css" />
 
-    <script>
-      // ---- 在这里初始化唯一的全局 Supabase 客户端 ----
-      // 将下面两个值替换为你的 Supabase 项目信息（Settings → API）
-      window.SUPABASE_URL = "https://cqmusijxssqzcqiztier.supabase.co"; // 示例，改为你的
-      window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxbXVzaWp4c3NxemNxaXp0aWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzNzA1NjUsImV4cCI6MjA3Njk0NjU2NX0.JIXOR1i5q8llCyMncegMfO3jw5-1a4npB5ZOAD4jVSw";           // ← **务必替换**
-      try {
-        window.SUPABASE_CLIENT = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-      } catch (e) {
-        console.error('初始化 Supabase 失败', e);
-      }
-    </script>
-  </head>
-  <body class="bg-gray-50 text-gray-900 antialiased">
-    <header class="bg-white shadow sticky top-0 z-40">
-      <div class="max-w-6xl mx-auto p-4 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <a href="/" class="text-xl font-bold text-indigo-600">同人文平台</a>
-          <nav class="hidden md:flex gap-3">
-            <a href="#books" class="text-gray-700 hover:text-indigo-600">小说</a>
-            <a href="community.html" class="text-gray-700 hover:text-indigo-600">社区</a>
-            <a href="gx/login.html" class="text-gray-700 hover:text-indigo-600">登录</a>
-          </nav>
-        </div>
-        <div class="hidden md:flex items-center gap-3">
-          <div id="user-info" class="text-sm text-gray-600"></div>
-        </div>
-        <button id="mobile-menu" class="md:hidden">☰</button>
+  <!-- Supabase SDK（必须在自定义脚本前加载） -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+
+  <script>
+    // ---------- 全局 Supabase 初始化（只在这里初始化一次） ----------
+    window.SUPABASE_URL = "https://cqmusijxssqzcqiztier.supabase.co";
+    window.SUPABASE_ANON_KEY = "sb_publishable_5sT9N2eNdgeah_8xlpSnTQ_PGbNDpr9";
+    try {
+      // 使用不同名字避免与 SDK 全局变量冲突
+      window.SUPABASE_CLIENT = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      console.log('Supabase initialized');
+    } catch (e) {
+      console.error('初始化 Supabase 失败', e);
+    }
+    // ------------------------------------------------------------------
+  </script>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+  <header class="bg-white shadow sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto p-4 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a href="/" class="text-2xl font-bold text-indigo-600">同人文平台</a>
+        <nav class="hidden md:flex gap-3 items-center">
+          <a href="#books" class="text-gray-700 hover:text-indigo-600">小说</a>
+          <a href="community.html" class="text-gray-700 hover:text-indigo-600">社区</a>
+          <a href="gx/login.html" class="text-gray-700 hover:text-indigo-600">登录</a>
+        </nav>
       </div>
-    </header>
+      <div class="hidden md:flex items-center gap-4">
+        <div id="user-info" class="text-sm text-gray-600"></div>
+      </div>
+      <button id="mobile-menu" class="md:hidden">☰</button>
+    </div>
+  </header>
 
-    <main class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-[320px,1fr] gap-8">
-      <aside class="hidden md:block bg-white p-4 rounded-lg shadow">
-        <h3 class="font-semibold mb-3">书库</h3>
-        <input id="search" placeholder="搜索" class="w-full border rounded px-3 py-2" />
-        <div id="books" class="mt-4 space-y-2 max-h-[60vh] overflow-auto"></div>
-      </aside>
+  <main class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-[300px,1fr] gap-8">
+    <aside class="hidden md:block bg-white p-4 rounded-lg shadow">
+      <h3 class="font-semibold mb-3">书库</h3>
+      <input id="search" placeholder="搜索书名 / 章节" class="w-full border rounded px-3 py-2" />
+      <div id="books" class="mt-4 space-y-2 max-h-[60vh] overflow-auto"></div>
+    </aside>
 
-      <section class="bg-white p-6 rounded-lg shadow">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <h1 id="book-title" class="text-2xl font-bold">— 请选择一本小说 —</h1>
-            <p id="chapter-title" class="text-sm text-gray-500">章节</p>
-          </div>
-          <div class="flex gap-2">
-            <button id="prev-ch" class="px-3 py-1 border rounded">上一章</button>
-            <button id="next-ch" class="px-3 py-1 border rounded">下一章</button>
-          </div>
+    <section class="bg-white p-6 rounded-lg shadow">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 id="book-title" class="text-2xl font-bold">— 请选择一本小说 —</h1>
+          <p id="chapter-title" class="text-sm text-gray-500">章节</p>
         </div>
-
-        <div id="content" class="prose mt-6 min-h-[48vh] text-lg">加载章节中…</div>
-
-        <div class="mt-6">
-          <section id="comments-root-container">
-            <h3 class="font-semibold mb-3">评论区</h3>
-            <!-- comments.js 会渲染 composer 与评论列表到 #comments-root -->
-            <div id="comments" class="bg-gray-50 p-4 rounded"></div>
-          </section>
+        <div class="flex gap-2">
+          <button id="prev-ch" class="px-3 py-1 border rounded">上一章</button>
+          <button id="next-ch" class="px-3 py-1 border rounded">下一章</button>
         </div>
-      </section>
-    </main>
+      </div>
 
-    <footer class="text-center p-6 text-sm text-gray-500">© 2025 awealy</footer>
+      <div id="content" class="prose mt-6 min-h-[48vh] text-lg">
+        <p class="text-sm text-gray-400">加载章节中…</p>
+      </div>
 
-    <!-- 站点通用脚本 -->
-    <script src="assets/app.js" defer></script>
+      <div class="mt-6">
+        <section id="comments-root-container">
+          <h3 class="font-semibold mb-3">评论区</h3>
+          <!-- comments.js 会渲染 composer 与评论列表到 #comments -->
+          <div id="comments" class="bg-gray-50 p-4 rounded"></div>
+        </section>
+      </div>
+    </section>
+  </main>
 
-    <!-- 评论脚本必须在 SUPABASE_CLIENT 初始化之后加载 -->
-    <script src="assets/comments.js" defer></script>
+  <footer class="text-center p-6 text-sm text-gray-500">© 2025 awealy</footer>
 
-    <script>
-      // show logged in user if exists
-      (async () => {
-        try {
+  <!-- 站点应用逻辑 -->
+  <script src="assets/app.js" defer></script>
+
+  <!-- 评论脚本（依赖 window.SUPABASE_CLIENT） -->
+  <script src="assets/comments.js" defer></script>
+
+  <!-- 显示已登录用户（非阻塞） -->
+  <script>
+    (async () => {
+      try {
+        if (window.SUPABASE_CLIENT) {
           const { data } = await window.SUPABASE_CLIENT.auth.getUser();
           if (data?.user) {
             document.getElementById('user-info').innerText = '欢迎，' + (data.user.user_metadata?.full_name || data.user.email || '用户');
           } else {
             document.getElementById('user-info').innerHTML = '<a href="gx/login.html" class="text-indigo-600">登录</a>';
           }
-        } catch (e) {
-          console.warn(e);
+        } else {
+          document.getElementById('user-info').innerHTML = '<a href="gx/login.html" class="text-indigo-600">登录</a>';
         }
-      })();
-    </script>
-  </body>
+      } catch (e) {
+        console.warn(e);
+      }
+    })();
+  </script>
+</body>
 </html>
