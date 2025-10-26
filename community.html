@@ -1,108 +1,132 @@
-<!DOCTYPE html>
-<html lang="zh">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>社区评论区</title>
 
-  <!-- 引入 Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { font-family: 'Inter', sans-serif; max-width: 800px; margin: auto; padding: 2rem; }
-    textarea { width: 100%; height: 120px; margin-top: 10px; padding: 8px; }
-    button { margin-top: 10px; padding: 8px 16px; border: none; cursor: pointer; border-radius: 8px; }
-    #publishBtn { background: #3b82f6; color: white; }
-    #clearBtn { background: #ef4444; color: white; margin-left: 10px; }
-    .comment { margin-top: 1rem; padding: 1rem; background: #f9fafb; border-radius: 8px; }
-  </style>
-</head>
-<body>
-  <h2>💬 社区评论区</h2>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>同人文创作与分享平台 — 社区</title>
+    <meta name="description" content="学校同人文创作与分享平台 — 评论与互动" />
 
-  <div id="commentBox">
-    <input id="username" type="text" placeholder="你的昵称" style="width:100%;padding:8px;">
-    <textarea id="commentText" placeholder="写下你的评论..."></textarea>
-    <div>
-      <button id="publishBtn">发布评论</button>
-      <button id="clearBtn">清空草稿</button>
-    </div>
-  </div>
+    <!-- 引入 Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <h3>最新评论：</h3>
-  <div id="comments"></div>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-  <script>
-    // 先初始化 supabase 客户端
-    const SUPABASE_URL = "https://cqmusijxssqzcqiztier.supabase.co";  // 替换为你的 Supabase 项目 URL
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body class="bg-gray-50 text-gray-900 antialiased">
+    <header class="bg-white shadow-sm sticky top-0 z-30">
+      <div class="mx-auto max-w-5xl p-4 flex items-center justify-between gap-4">
+        <a href="/" class="text-xl font-semibold">成都市教育科学研究院新都附属实验学校 同人文</a>
+        <nav class="hidden md:flex gap-3 items-center">
+          <a href="/" class="px-3 py-1 rounded hover:bg-gray-100">首页</a>
+          <a href="community.html" class="px-3 py-1 rounded hover:bg-gray-100">社区</a>
+          <a href="#books" class="px-3 py-1 rounded hover:bg-gray-100">小说作品</a>
+          <a href="#about" class="px-3 py-1 rounded hover:bg-gray-100">关于</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-5xl p-4 grid grid-cols-1 md:grid-cols-[320px,1fr] gap-6">
+      <!-- 书目目录和评论 -->
+      <aside id="toc" class="bg-white p-4 rounded shadow-sm w-full">
+        <h3 class="text-lg font-medium">社区评论区</h3>
+        <input id="username" placeholder="请输入昵称" class="ml-2 px-2 py-1 border rounded w-full text-sm mt-4" />
+        <textarea id="commentText" placeholder="写下你的评论..." class="mt-2 px-2 py-1 border rounded w-full text-sm" rows="4"></textarea>
+        <button id="publishBtn" class="px-3 py-1 mt-2 border rounded bg-blue-500 text-white">发布评论</button>
+        <button id="clearBtn" class="px-3 py-1 mt-2 border rounded bg-red-500 text-white">清空草稿</button>
+      </aside>
+
+      <!-- 评论显示区 -->
+      <article class="bg-white p-6 rounded shadow-sm" id="comments">
+        <h3 class="text-lg font-medium">最新评论：</h3>
+        <div id="commentsList" class="space-y-4 mt-4">
+          <!-- 评论内容将在这里动态加载 -->
+        </div>
+      </article>
+    </main>
+
+    <footer class="mt-8 p-4 text-center text-sm text-gray-500">
+      © 2025 版权所有 | 设计：awealy
+    </footer>
+
+    <script>
+      // === 1️⃣ 初始化 Supabase 客户端 ===
+      const SUPABASE_URL = "https://cqmusijxssqzcqiztier.supabase.co";  // 替换为你的 Supabase 项目 URL
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxbXVzaWp4c3NxemNxaXp0aWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzNzA1NjUsImV4cCI6MjA3Njk0NjU2NX0.JIXOR1i5q8llCyMncegMfO3jw5-1a4npB5ZOAD4jVSw";  // 替换为你的 Supabase anon key
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+ 
+      const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const publishBtn = document.getElementById("publishBtn");
-    const clearBtn = document.getElementById("clearBtn");
-    const commentsDiv = document.getElementById("comments");
-    const usernameInput = document.getElementById("username");
-    const commentText = document.getElementById("commentText");
+      // === 2️⃣ 发布评论功能 ===
+      const publishBtn = document.getElementById("publishBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const commentsList = document.getElementById("commentsList");
+      const usernameInput = document.getElementById("username");
+      const commentText = document.getElementById("commentText");
 
-    // 加载评论
-    async function loadComments() {
-      const { data, error } = await supabase
-        .from("comments")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      commentsDiv.innerHTML = "";
-      if (data) {
-        data.forEach(c => {
-          const div = document.createElement("div");
-          div.className = "comment";
-          div.innerHTML = `<b>${c.user_name}</b><br>${c.content}<br><small>${new Date(c.created_at).toLocaleString()}</small>`;
-          commentsDiv.appendChild(div);
-        });
-      } else {
-        commentsDiv.innerHTML = "<p>加载失败</p>";
-        console.error(error);
-      }
-    }
-
-    // 发布评论
-    publishBtn.addEventListener("click", async () => {
-      const name = usernameInput.value.trim();
-      const text = commentText.value.trim();
-      if (!name || !text) {
-        alert("请输入昵称和评论内容");
-        return;
-      }
-      const { error } = await supabase.from("comments").insert([
-        { user_name: name, content: text, chapter_path: "community" }
-      ]);
-      if (error) {
-        alert("发布失败: " + error.message);
-      } else {
-        commentText.value = "";
-        await loadComments();
-      }
-    });
-
-    // 清空草稿
-    clearBtn.addEventListener("click", () => {
-      commentText.value = "";
-      usernameInput.value = "";
-    });
-
-    // 实时监听
-    supabase
-      .channel("comments")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "comments" },
-        payload => {
-          console.log("新评论：", payload.new);
-          loadComments();
+      // 发布评论事件
+      publishBtn.addEventListener("click", async () => {
+        const username = usernameInput.value.trim();
+        const text = commentText.value.trim();
+        if (!username || !text) {
+          alert("请输入昵称和评论内容");
+          return;
         }
-      )
-      .subscribe();
+        // 将评论插入数据库
+        const { data, error } = await supabase.from("comments").insert([
+          { user_name: username, content: text, chapter_path: "community" }
+        ]);
+        if (error) {
+          alert("发布失败: " + error.message);
+        } else {
+          commentText.value = "";
+          loadComments();  // 加载评论
+        }
+      });
 
-    loadComments();
-  </script>
-</body>
+      // 清空草稿事件
+      clearBtn.addEventListener("click", () => {
+        commentText.value = "";
+        usernameInput.value = "";
+      });
+
+      // === 3️⃣ 加载评论函数 ===
+      async function loadComments() {
+        const { data, error } = await supabase
+          .from("comments")
+          .select("*")
+          .order("created_at", { ascending: false });
+        
+        commentsList.innerHTML = "";  // 清空现有评论内容
+        if (data) {
+          data.forEach(c => {
+            const div = document.createElement("div");
+            div.className = "p-4 bg-gray-50 rounded shadow-sm";
+            div.innerHTML = `<b>${c.user_name}</b><p>${c.content}</p><small>${new Date(c.created_at).toLocaleString()}</small>`;
+            commentsList.appendChild(div);
+          });
+        } else {
+          commentsList.innerHTML = "<p>加载评论失败</p>";
+        }
+      }
+
+      // === 4️⃣ 实时监听评论 ===
+      supabase
+        .channel("comments")
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "comments" },
+          payload => {
+            console.log("新评论：", payload.new);
+            loadComments();  // 加载最新评论
+          }
+        )
+        .subscribe();
+
+      // 加载页面时获取评论
+      loadComments();
+    </script>
+  </body>
 </html>
