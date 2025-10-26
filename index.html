@@ -1,57 +1,98 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>同人文创作与分享平台</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/github.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
-  <link rel="stylesheet" href="assets/styles.css">
-</head>
+   <script src="assets/comments.js"></script>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>同人文创作与分享平台 — 阅读器</title>
+  <meta name="description" content="学校同人文创作与分享平台 — 现代化 Markdown 驱动的阅读器" />
 
+  <!-- Tailwind via CDN (快速美观) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Marked (Markdown 渲染)、highlight.js (代码高亮)、Lunr (可选搜索) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/default.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lunr/lunr.min.js"></script>
+
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
 <body class="bg-gray-50 text-gray-900 antialiased">
-  <header class="bg-white shadow sticky top-0 z-30">
-    <div class="max-w-6xl mx-auto flex justify-between items-center p-4">
-      <a href="/" class="text-xl font-semibold">成都市教科院新都附属实验学校 同人文</a>
-      <nav class="hidden md:flex gap-3">
-        <a href="#" class="hover:text-indigo-600">首页</a>
-        <a href="community.html" class="hover:text-indigo-600">社区</a>
-        <a href="#about" class="hover:text-indigo-600">关于</a>
+  <header class="bg-white shadow-sm sticky top-0 z-30">
+    <div class="mx-auto max-w-5xl p-4 flex items-center justify-between gap-4">
+      <a href="/" class="text-xl font-semibold">成都市教育科学研究院新都附属实验学校 同人文</a>
+      <nav class="hidden md:flex gap-3 items-center">
+        <a href="#" id="nav-home" class="px-3 py-1 rounded hover:bg-gray-100">首页</a>
+        <a href="community.html" class="px-3 py-1 rounded hover:bg-gray-100">社区</a>
+        <a href="#books" class="px-3 py-1 rounded hover:bg-gray-100">小说作品</a>
+        <a href="#about" class="px-3 py-1 rounded hover:bg-gray-100">关于</a>
+        <button id="toggle-theme" class="px-3 py-1 border rounded">夜间</button>
       </nav>
+      <button id="open-menu" class="md:hidden">☰</button>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto grid md:grid-cols-[300px,1fr] gap-6 p-4">
-    <!-- 左侧书库 -->
-    <aside id="book-list" class="bg-white rounded p-4 shadow-sm h-[75vh] overflow-y-auto">
-      <h2 class="text-lg font-bold mb-3">📚 小说目录</h2>
-      <div id="books"></div>
+  <main class="mx-auto max-w-5xl p-4 grid grid-cols-1 md:grid-cols-[320px,1fr] gap-6">
+    <!-- 左侧：书目目录 -->
+    <aside id="toc" class="hidden md:block bg-white p-4 rounded shadow-sm">
+      <div class="mb-3 flex items-center justify-between">
+        <h3 class="text-lg font-medium">书库</h3>
+        <input id="search" placeholder="搜索书名 / 章节" class="ml-2 px-2 py-1 border rounded w-36 text-sm" />
+      </div>
+      <div id="books" class="space-y-4 overflow-auto max-h-[60vh]"></div>
     </aside>
 
     <!-- 阅读器 -->
-    <article id="reader" class="bg-white rounded p-6 shadow-sm">
-      <h1 id="book-title" class="text-2xl font-semibold mb-1">请选择一本小说</h1>
-      <p id="chapter-title" class="text-sm text-gray-500 mb-4">章节</p>
-      <div id="content" class="prose max-w-none min-h-[300px] text-gray-800">
-        <p class="text-gray-400">加载中…</p>
-      </div>
-      <div class="flex justify-between items-center mt-6">
+    <article class="bg-white p-6 rounded shadow-sm" id="reader">
+      <div class="mb-2 flex items-center justify-between gap-4">
         <div>
-          <button id="prev" class="px-3 py-1 border rounded">上一章</button>
-          <button id="next" class="px-3 py-1 border rounded ml-2">下一章</button>
+          <h1 id="book-title" class="text-2xl font-semibold">— 请选择一本小说 —</h1>
+          <p id="chapter-title" class="text-sm text-gray-500">章节</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="prev-ch" class="px-3 py-1 border rounded">上一章</button>
+          <button id="next-ch" class="px-3 py-1 border rounded">下一章</button>
         </div>
       </div>
-      <hr class="my-6">
-      <section id="comments" class="mt-4"></section>
+     
+
+      <div class="h-1 bg-gray-200 rounded mb-4">
+        <div id="progress" class="h-1 bg-indigo-500 rounded w-0"></div>
+      </div>
+
+      <div class="prose max-w-none" id="content" style="min-height:40vh;">
+        <!-- Markdown 渲染在此 -->
+        <p class="text-sm text-gray-400">加载章节中…</p>
+      </div>
+
+      <div class="mt-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <label class="text-sm">字号</label>
+          <button class="px-2 py-1 border rounded text-sm" id="dec-font">A-</button>
+          <button class="px-2 py-1 border rounded text-sm" id="inc-font">A+</button>
+          <button class="px-2 py-1 border rounded text-sm" id="toggle-wide">阅读模式</button>
+        </div>
+        <div>
+          <button id="bookmark" class="px-3 py-1 border rounded">书签</button>
+        </div>
+      </div>
+
+      <hr class="my-6" />
+      <section id="comments">
+        <!-- Utterances 评论将插入这里（需配置） -->
+      </section>
     </article>
   </main>
 
-  <footer class="text-center text-gray-500 p-4">© 2025 awealy | 同人文平台</footer>
+  <footer class="mt-8 p-4 text-center text-sm text-gray-500">
+    © 2025 版权所有 | 设计：awealy
+  </footer>
 
   <script src="assets/app.js"></script>
-  <script src="assets/comments.js"></script>
 </body>
 </html>
+
+
+
