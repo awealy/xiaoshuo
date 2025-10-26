@@ -1,1 +1,313 @@
 
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>联系我们 - 编程学习社区</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+        
+        .contact-section {
+            padding: 60px 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.2rem;
+            color: #2c3e50;
+            position: relative;
+        }
+        
+        .section-title:after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+        
+        .contact-cards {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .contact-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            width: 100%;
+            max-width: 350px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+        }
+        
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #2575fc;
+        }
+        
+        .contact-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .contact-card p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(38, 117, 252, 0.3);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #2575fc;
+            color: #2575fc;
+        }
+        
+        .btn-outline:hover {
+            background: #2575fc;
+            color: white;
+        }
+        
+        .additional-info {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-top: 30px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .info-item h4 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .info-item ul {
+            list-style-type: none;
+        }
+        
+        .info-item li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .info-item li:before {
+            content: "•";
+            color: #2575fc;
+            position: absolute;
+            left: 0;
+        }
+        
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            margin-top: 60px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .footer-links a {
+            color: #ddd;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        .copyright {
+            margin-top: 20px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .contact-cards {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .contact-card {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>联系我们</h1>
+            <p>加入我们的编程学习社区，与志同道合的朋友一起进步</p>
+        </div>
+    </header>
+    
+    <section class="contact-section">
+        <div class="container">
+            <h2 class="section-title">加入我们的社区</h2>
+            
+            <div class="contact-cards">
+                <div class="contact-card">
+                    <div class="card-icon">💬</div>
+                    <h3>QQ交流群</h3>
+                    <p>加入我们的QQ群，与社区成员实时交流，分享学习心得和编程技巧。</p>
+                    <p><strong>群号:</strong> 1067527695</p>
+                    <p><strong>成员:</strong> 5人 | 活跃度: 0%</p>
+                    <p><strong>特点:</strong> 轻松交流，做真实的自己</p>
+                    <a href="#" class="btn">加入QQ群</a>
+                </div>
+                
+                <div class="contact-card">
+                    <div class="card-icon">📚</div>
+                    <h3>洛谷团队</h3>
+                    <p>加入洛谷计算机科学教育平台，参与算法竞赛和编程练习。</p>
+                    <p><strong>注意:</strong> 需要先登录才能访问团队页面</p>
+                    <p><strong>平台特色:</strong> 丰富的题库、比赛和讨论区</p>
+                    <a href="#" class="btn btn-outline">前往洛谷</a>
+                </div>
+                
+                <div class="contact-card">
+                    <div class="card-icon">👨‍💻</div>
+                    <h3>AcWing社区</h3>
+                    <p>加入AcWing算法学习社区</p>
+                    <p><strong>注意:</strong> 需要登录才能访问完整内容</p>
+                    <p><strong>特色:</strong> 课程、题库、竞赛和详细题解</p>
+                    <a href="#" class="btn btn-outline">前往AcWing</a>
+                </div>
+            </div>
+            
+            <div class="additional-info">
+                <h3 class="section-title" style="font-size: 1.8rem; margin-bottom: 30px;">社区详情</h3>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <h4>QQ群信息</h4>
+                        <ul>
+                            <li>建群时间: 2025-6-23</li>
+                            <li>成员构成: 3名女性(60%)，5名城市成员(100%)</li>
+                            <li>年龄分布: 1名00后(20%)</li>
+                            <li>交流方式: 手机QQ扫描二维码轻松加入</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="info-item">
+                        <h4>洛谷平台</h4>
+                        <ul>
+                            <li>平台类型: 计算机科学教育新生态</li>
+                            <li>主要内容: 题库、题单、比赛、讨论、专栏</li>
+                            <li>访问要求: 需要登录才能参与</li>
+                            <li>社区规则: 有完善的小黑屋、陶片放逐等机制</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="info-item">
+                        <h4>AcWing社区</h4>
+                        <ul>
+                            <li>主要内容: 课程、题库、竞赛、题解、分享</li>
+                            <li>特色功能: 历史记录、猜你想搜、热点推荐</li>
+                            <li>访问要求: 需要登录才能访问完整内容</li>
+                            <li>联系方式: 有完善的用户协议和隐私政策</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="container">
+            <p class="copyright">© 2025 设计：awealy</p>
+        </div>
+    </footer>
+</body>
+</html>
