@@ -4,92 +4,103 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>同人文创作与分享平台 — 阅读器</title>
-    <meta name="description" content="学校同人文创作与分享平台 — 现代化 Markdown 驱动的阅读器" />
-
-    <!-- Tailwind via CDN (快速美观) -->
+    <meta name="description" content="现代化 Markdown 驱动的阅读器" />
+    <!-- Tailwind (dev CDN ok for prototype) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Marked (Markdown 渲染)、highlight.js (代码高亮)、Lunr (可选搜索) -->
+    <!-- Marked & highlight.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/default.min.css">
     <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lunr/lunr.min.js"></script>
 
     <link rel="stylesheet" href="assets/styles.css" />
-    <!-- 引入 Supabase SDK -->
+
+    <!-- Supabase SDK - 必须在自定义脚本前加载 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+
+    <script>
+      // ---- 在这里初始化唯一的全局 Supabase 客户端 ----
+      // 将下面两个值替换为你的 Supabase 项目信息（Settings → API）
+      window.SUPABASE_URL = "https://cqmusijxssqzcqiztier.supabase.co"; // 示例，改为你的
+      window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxbXVzaWp4c3NxemNxaXp0aWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzNzA1NjUsImV4cCI6MjA3Njk0NjU2NX0.JIXOR1i5q8llCyMncegMfO3jw5-1a4npB5ZOAD4jVSw";           // ← **务必替换**
+      try {
+        window.SUPABASE_CLIENT = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      } catch (e) {
+        console.error('初始化 Supabase 失败', e);
+      }
+    </script>
   </head>
   <body class="bg-gray-50 text-gray-900 antialiased">
-    <header class="bg-white shadow-md sticky top-0 z-30">
-      <div class="mx-auto max-w-5xl p-4 flex items-center justify-between gap-6">
-        <a href="/" class="text-2xl font-semibold text-indigo-600">成都市教育科学研究院新都附属实验学校 同人文</a>
-        <nav class="hidden md:flex gap-6 items-center">
-          <a href="gx/login.html" class="text-gray-700 hover:text-indigo-600">登录</a>
-          <a href="community.html" class="text-gray-700 hover:text-indigo-600">社区</a>
-          <a href="lx/index.html" class="text-gray-700 hover:text-indigo-600">联系我们</a>
-          <a href="#books" class="text-gray-700 hover:text-indigo-600">小说作品</a>
-          <button id="toggle-theme" class="px-3 py-1 border rounded hover:bg-indigo-600 text-gray-700">夜间模式</button>
-        </nav>
-        <button id="open-menu" class="md:hidden text-xl text-gray-700">☰</button>
+    <header class="bg-white shadow sticky top-0 z-40">
+      <div class="max-w-6xl mx-auto p-4 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <a href="/" class="text-xl font-bold text-indigo-600">同人文平台</a>
+          <nav class="hidden md:flex gap-3">
+            <a href="#books" class="text-gray-700 hover:text-indigo-600">小说</a>
+            <a href="community.html" class="text-gray-700 hover:text-indigo-600">社区</a>
+            <a href="gx/login.html" class="text-gray-700 hover:text-indigo-600">登录</a>
+          </nav>
+        </div>
+        <div class="hidden md:flex items-center gap-3">
+          <div id="user-info" class="text-sm text-gray-600"></div>
+        </div>
+        <button id="mobile-menu" class="md:hidden">☰</button>
       </div>
     </header>
 
-    <main class="mx-auto max-w-5xl p-6 grid grid-cols-1 md:grid-cols-[320px,1fr] gap-8">
-      <!-- 左侧：书目目录 -->
-      <aside id="toc" class="hidden md:block bg-white p-6 rounded shadow-lg">
-        <h3 class="text-xl font-semibold mb-4">书库</h3>
-        <input id="search" placeholder="搜索书名 / 章节" class="ml-2 px-4 py-2 border rounded w-72 text-sm text-gray-700" />
-        <div id="books" class="space-y-4 mt-6 overflow-auto max-h-[60vh]"></div>
+    <main class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-[320px,1fr] gap-8">
+      <aside class="hidden md:block bg-white p-4 rounded-lg shadow">
+        <h3 class="font-semibold mb-3">书库</h3>
+        <input id="search" placeholder="搜索" class="w-full border rounded px-3 py-2" />
+        <div id="books" class="mt-4 space-y-2 max-h-[60vh] overflow-auto"></div>
       </aside>
 
-      <!-- 阅读器 -->
-      <div id="user-info" class="mb-4">
-        <!-- 用户信息将在此加载 -->
-      </div>
-      <article class="bg-white p-6 rounded-lg shadow-lg" id="reader">
-        <div class="mb-6 flex items-center justify-between gap-6">
+      <section class="bg-white p-6 rounded-lg shadow">
+        <div class="flex items-start justify-between gap-4">
           <div>
-            <h1 id="book-title" class="text-3xl font-bold">— 请选择一本小说 —</h1>
-            <p id="chapter-title" class="text-md text-gray-500">章节</p>
+            <h1 id="book-title" class="text-2xl font-bold">— 请选择一本小说 —</h1>
+            <p id="chapter-title" class="text-sm text-gray-500">章节</p>
           </div>
-          <div class="flex items-center gap-4">
-            <button id="prev-ch" class="px-4 py-2 border rounded-lg hover:bg-indigo-500 text-white">上一章</button>
-            <button id="next-ch" class="px-4 py-2 border rounded-lg hover:bg-indigo-500 text-white">下一章</button>
-          </div>
-        </div>
-
-        <div class="h-2 bg-gray-200 rounded mb-6">
-          <div id="progress" class="h-2 bg-indigo-500 rounded w-0"></div>
-        </div>
-
-        <div class="prose max-w-none text-lg" id="content" style="min-height:40vh;">
-          <p class="text-sm text-gray-400">加载章节中...</p>
-        </div>
-
-        <div class="mt-8 flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <label class="text-sm">字号</label>
-            <button class="px-3 py-2 border rounded text-sm" id="dec-font">A-</button>
-            <button class="px-3 py-2 border rounded text-sm" id="inc-font">A+</button>
-            <button class="px-3 py-2 border rounded text-sm" id="toggle-wide">阅读模式</button>
-          </div>
-          <div>
-            <button id="bookmark" class="px-4 py-2 border rounded-lg text-sm hover:bg-indigo-600 text-white">书签</button>
+          <div class="flex gap-2">
+            <button id="prev-ch" class="px-3 py-1 border rounded">上一章</button>
+            <button id="next-ch" class="px-3 py-1 border rounded">下一章</button>
           </div>
         </div>
 
-        <hr class="my-6" />
-        <section id="comments" class="mt-6">
-          <p class="text-gray-400">加载评论中...</p>
-        </section>
-      </article>
+        <div id="content" class="prose mt-6 min-h-[48vh] text-lg">加载章节中…</div>
+
+        <div class="mt-6">
+          <section id="comments-root-container">
+            <h3 class="font-semibold mb-3">评论区</h3>
+            <!-- comments.js 会渲染 composer 与评论列表到 #comments-root -->
+            <div id="comments" class="bg-gray-50 p-4 rounded"></div>
+          </section>
+        </div>
+      </section>
     </main>
 
-    <footer class="mt-8 p-4 text-center text-sm text-gray-500">
-      <a href="gx/index.html" class="text-gray-700 hover:text-indigo-600">更新日志</a>
-      <p>© 2025 版权所有 | 设计：awealy & wyxrl & 鉞熙</p>
-    </footer>
+    <footer class="text-center p-6 text-sm text-gray-500">© 2025 awealy</footer>
 
-    <script src="assets/app.js"></script>
+    <!-- 站点通用脚本 -->
+    <script src="assets/app.js" defer></script>
+
+    <!-- 评论脚本必须在 SUPABASE_CLIENT 初始化之后加载 -->
+    <script src="assets/comments.js" defer></script>
+
+    <script>
+      // show logged in user if exists
+      (async () => {
+        try {
+          const { data } = await window.SUPABASE_CLIENT.auth.getUser();
+          if (data?.user) {
+            document.getElementById('user-info').innerText = '欢迎，' + (data.user.user_metadata?.full_name || data.user.email || '用户');
+          } else {
+            document.getElementById('user-info').innerHTML = '<a href="gx/login.html" class="text-indigo-600">登录</a>';
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+      })();
+    </script>
   </body>
 </html>
