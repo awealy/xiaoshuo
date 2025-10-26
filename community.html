@@ -1,61 +1,105 @@
-<!doctype html>
-<html lang="zh-CN">
+<!DOCTYPE html>
+<html lang="zh">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>社区 - 小说平台</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-  <meta name="robots" content="noindex"> <!-- 可选，避免索引测试页面 -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>社区评论区</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    .reply-box { margin-left: 1.25rem; border-left: 2px solid #eee; padding-left: .75rem; }
+    body { font-family: 'Inter', sans-serif; max-width: 800px; margin: auto; padding: 2rem; }
+    textarea { width: 100%; height: 120px; margin-top: 10px; padding: 8px; }
+    button { margin-top: 10px; padding: 8px 16px; border: none; cursor: pointer; border-radius: 8px; }
+    #publishBtn { background: #3b82f6; color: white; }
+    #clearBtn { background: #ef4444; color: white; margin-left: 10px; }
+    .comment { margin-top: 1rem; padding: 1rem; background: #f9fafb; border-radius: 8px; }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen">
-  <header class="bg-white shadow p-4">
-    <div class="max-w-5xl mx-auto flex justify-between items-center">
-      <a href="index.html" class="text-lg font-semibold">← 返回首页</a>
-      <h1 class="text-xl font-bold">社区交流</h1>
-      <div></div>
+<body>
+  <h2>💬 社区评论区</h2>
+
+  <div id="commentBox">
+    <input id="username" type="text" placeholder="你的昵称" style="width:100%;padding:8px;">
+    <textarea id="commentText" placeholder="写下你的评论..."></textarea>
+    <div>
+      <button id="publishBtn">发布评论</button>
+      <button id="clearBtn">清空草稿</button>
     </div>
-  </header>
+  </div>
 
-  <main class="max-w-5xl mx-auto p-4 grid gap-6">
-    <!-- 说明 / 自动章节识别示例 -->
-    <section class="bg-white p-4 rounded shadow">
-      <p class="text-sm text-gray-500">提示：若你在章节页使用，请在该页面加入脚本：
-        <code>window.BOOK_SLUG='zhoushao'; window.CHAPTER_PATH='xs/name/zhoushao/1-10.md'</code>
-        或在 community.html 手动输入章节路径发布评论。
-      </p>
-    </section>
+  <h3>最新评论：</h3>
+  <div id="comments"></div>
 
-    <!-- 发布评论 -->
-    <section class="bg-white p-4 rounded shadow" id="post-area">
-      <h2 class="font-semibold text-lg mb-2">发布评论 / 回复</h2>
+  <script>
+    const SUPABASE_URL = "https://cqmusijxssqzcqiztier.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxbXVzaWp4c3NxemNxaXp0aWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzNzA1NjUsImV4cCI6MjA3Njk0NjU2NX0.JIXOR1i5q8llCyMncegMfO3jw5-1a4npB5ZOAD4jVSw";
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      <div class="grid gap-2">
-        <input id="author" placeholder="昵称（必填）" class="border px-3 py-2 rounded" />
-        <input id="chapter-input" placeholder="章节路径（自动检测或填写）" class="border px-3 py-2 rounded" />
-        <textarea id="content" rows="4" placeholder="写下你的评论..." class="border px-3 py-2 rounded"></textarea>
-        <div class="flex gap-2">
-          <button id="send-btn" class="px-4 py-2 bg-indigo-600 text-white rounded">发布</button>
-          <button id="clear-draft" class="px-4 py-2 border rounded">清空草稿</button>
-          <div id="post-status" class="text-sm text-gray-500 self-center"></div>
-        </div>
-      </div>
-    </section>
+    const publishBtn = document.getElementById("publishBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const commentsDiv = document.getElementById("comments");
+    const usernameInput = document.getElementById("username");
+    const commentText = document.getElementById("commentText");
 
-    <!-- 评论列表 -->
-    <section class="bg-white p-4 rounded shadow">
-      <h2 class="font-semibold text-lg mb-2">最新评论（实时更新）</h2>
-      <div id="comments-root" class="space-y-3 text-sm text-gray-800">
-        <p class="text-gray-400">正在加载评论…</p>
-      </div>
-    </section>
-  </main>
+    // 加载评论
+    async function loadComments() {
+      const { data, error } = await supabase
+        .from("comments")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-  <footer class="text-center text-sm text-gray-500 p-4">© 2025 awealy</footer>
+      commentsDiv.innerHTML = "";
+      if (data) {
+        data.forEach(c => {
+          const div = document.createElement("div");
+          div.className = "comment";
+          div.innerHTML = `<b>${c.user_name}</b><br>${c.content}<br><small>${new Date(c.created_at).toLocaleString()}</small>`;
+          commentsDiv.appendChild(div);
+        });
+      } else {
+        commentsDiv.innerHTML = "<p>加载失败</p>";
+        console.error(error);
+      }
+    }
 
-  <script src="assets/comments.js" defer></script>
+    // 发布评论
+    publishBtn.addEventListener("click", async () => {
+      const name = usernameInput.value.trim();
+      const text = commentText.value.trim();
+      if (!name || !text) {
+        alert("请输入昵称和评论内容");
+        return;
+      }
+      const { error } = await supabase.from("comments").insert([
+        { user_name: name, content: text, chapter_path: "community" }
+      ]);
+      if (error) {
+        alert("发布失败: " + error.message);
+      } else {
+        commentText.value = "";
+        await loadComments();
+      }
+    });
+
+    // 清空草稿
+    clearBtn.addEventListener("click", () => {
+      commentText.value = "";
+      usernameInput.value = "";
+    });
+
+    // 实时监听
+    supabase
+      .channel("comments")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "comments" },
+        payload => {
+          console.log("新评论：", payload.new);
+          loadComments();
+        }
+      )
+      .subscribe();
+
+    loadComments();
+  </script>
 </body>
 </html>
