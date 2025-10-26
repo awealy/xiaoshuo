@@ -1,125 +1,120 @@
 <!doctype html>
 <html lang="zh-CN">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-   <script src="assets/comments.js"></script>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>同人文创作与分享平台 — 阅读器</title>
-  <meta name="description" content="学校同人文创作与分享平台 — 现代化 Markdown 驱动的阅读器" />
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>同人文创作与分享平台 — 阅读器</title>
+    <meta name="description" content="学校同人文创作与分享平台 — 现代化 Markdown 驱动的阅读器" />
 
-  <!-- Tailwind via CDN (快速美观) -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind via CDN (快速美观) -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Marked (Markdown 渲染)、highlight.js (代码高亮)、Lunr (可选搜索) -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/default.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lunr/lunr.min.js"></script>
+    <!-- Marked (Markdown 渲染)、highlight.js (代码高亮)、Lunr (可选搜索) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/default.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lunr/lunr.min.js"></script>
 
-  <link rel="stylesheet" href="assets/styles.css" />
-</head>
-<body class="bg-gray-50 text-gray-900 antialiased">
-  <header class="bg-white shadow-sm sticky top-0 z-30">
-    <div class="mx-auto max-w-5xl p-4 flex items-center justify-between gap-4">
-      <a href="/" class="text-xl font-semibold">成都市教育科学研究院新都附属实验学校 同人文</a>
-      <nav class="hidden md:flex gap-3 items-center">
-        <a href="gx/login.html" style="float:right;margin:10px;">登录</a>
-        <a href="community.html" class="px-3 py-1 rounded hover:bg-gray-100">社区</a>
-        <a href="lx/index.html" class="px-3 py-1 rounded hover:bg-gray-100">联系我们</a>
-        <a href="#books" class="px-3 py-1 rounded hover:bg-gray-100">小说作品</a>
-        <button id="toggle-theme" class="px-3 py-1 border rounded">夜间</button>
-      </nav>
-      <button id="open-menu" class="md:hidden">☰</button>
-    </div>
-  </header>
-
-  <main class="mx-auto max-w-5xl p-4 grid grid-cols-1 md:grid-cols-[320px,1fr] gap-6">
-    <!-- 左侧：书目目录 -->
-    <aside id="toc" class="hidden md:block bg-white p-4 rounded shadow-sm">
-      <div class="mb-3 flex items-center justify-between">
-        <h3 class="text-lg font-medium">书库</h3>
-        <input id="search" placeholder="搜索书名 / 章节" class="ml-2 px-2 py-1 border rounded w-36 text-sm" />
+    <link rel="stylesheet" href="assets/styles.css" />
+    
+    <!-- 引入 Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  </head>
+  <body class="bg-gray-50 text-gray-900 antialiased">
+    <header class="bg-white shadow-sm sticky top-0 z-30">
+      <div class="mx-auto max-w-5xl p-4 flex items-center justify-between gap-4">
+        <a href="/" class="text-xl font-semibold">成都市教育科学研究院新都附属实验学校 同人文</a>
+        <nav class="hidden md:flex gap-3 items-center">
+          <a href="gx/login.html" style="float:right;margin:10px;">登录</a>
+          <a href="community.html" class="px-3 py-1 rounded hover:bg-gray-100">社区</a>
+          <a href="lx/index.html" class="px-3 py-1 rounded hover:bg-gray-100">联系我们</a>
+          <a href="#books" class="px-3 py-1 rounded hover:bg-gray-100">小说作品</a>
+          <button id="toggle-theme" class="px-3 py-1 border rounded">夜间</button>
+        </nav>
+        <button id="open-menu" class="md:hidden">☰</button>
       </div>
-      <div id="books" class="space-y-4 overflow-auto max-h-[60vh]"></div>
-    </aside>
+    </header>
 
-    <!-- 阅读器 -->
-    <div id="user-info"></div>
-    <script>
-      const supabase = supabase.createClient("https://xxxx.supabase.co", "你的 anon key");
-      async function showUser() {
-        const { data } = await supabase.auth.getUser();
-        if (data?.user) {
-          document.getElementById('user-info').innerHTML = `
-            <p>欢迎回来，${data.user.email || data.user.user_metadata.full_name}</p>
-          `;
+    <main class="mx-auto max-w-5xl p-4 grid grid-cols-1 md:grid-cols-[320px,1fr] gap-6">
+      <!-- 左侧：书目目录 -->
+      <aside id="toc" class="hidden md:block bg-white p-4 rounded shadow-sm">
+        <div class="mb-3 flex items-center justify-between">
+          <h3 class="text-lg font-medium">书库</h3>
+          <input id="search" placeholder="搜索书名 / 章节" class="ml-2 px-2 py-1 border rounded w-36 text-sm" />
+        </div>
+        <div id="books" class="space-y-4 overflow-auto max-h-[60vh]"></div>
+      </aside>
+
+      <!-- 阅读器 -->
+      <div id="user-info"></div>
+      <script>
+        const supabase = supabase.createClient("https://cqmusijxssqzcqiztier.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxbXVzaWp4c3NxemNxaXp0aWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzNzA1NjUsImV4cCI6MjA3Njk0NjU2NX0.JIXOR1i5q8llCyMncegMfO3jw5-1a4npB5ZOAD4jVSw");
+
+        async function showUser() {
+          const { data } = await supabase.auth.getUser();
+          if (data?.user) {
+            document.getElementById('user-info').innerHTML = `
+              <p>欢迎回来，${data.user.email || data.user.user_metadata.full_name}</p>
+            `;
+          } else {
+            document.getElementById('user-info').innerHTML = `
+              <p>你还没有登录。</p>
+            `;
+          }
         }
-      }
-      showUser();
-    </script>
 
-    <article class="bg-white p-6 rounded shadow-sm" id="reader">
-      <div class="mb-2 flex items-center justify-between gap-4">
-        <div>
-          <h1 id="book-title" class="text-2xl font-semibold">— 请选择一本小说 —</h1>
-          <p id="chapter-title" class="text-sm text-gray-500">章节</p>
+        showUser();
+      </script>
+
+      <article class="bg-white p-6 rounded shadow-sm" id="reader">
+        <div class="mb-2 flex items-center justify-between gap-4">
+          <div>
+            <h1 id="book-title" class="text-2xl font-semibold">— 请选择一本小说 —</h1>
+            <p id="chapter-title" class="text-sm text-gray-500">章节</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="prev-ch" class="px-3 py-1 border rounded">上一章</button>
+            <button id="next-ch" class="px-3 py-1 border rounded">下一章</button>
+          </div>
         </div>
-        <div class="flex items-center gap-2">
-          <button id="prev-ch" class="px-3 py-1 border rounded">上一章</button>
-          <button id="next-ch" class="px-3 py-1 border rounded">下一章</button>
+
+        <div class="h-1 bg-gray-200 rounded mb-4">
+          <div id="progress" class="h-1 bg-indigo-500 rounded w-0"></div>
         </div>
-      </div>
-     
 
-      <div class="h-1 bg-gray-200 rounded mb-4">
-        <div id="progress" class="h-1 bg-indigo-500 rounded w-0"></div>
-      </div>
-<script>
-  window.BOOK_SLUG = 'zhoushao';
-  window.CHAPTER_PATH = 'xs/name/zhoushao/1-10.md';
-</script>
+        <script>
+          window.BOOK_SLUG = 'zhoushao';
+          window.CHAPTER_PATH = 'xs/name/zhoushao/1-10.md';
+        </script>
 
-      <div class="prose max-w-none" id="content" style="min-height:40vh;">
-        <!-- Markdown 渲染在此 -->
-        <p class="text-sm text-gray-400">加载章节中…</p>
-      </div>
-
-      <div class="mt-6 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <label class="text-sm">字号</label>
-          <button class="px-2 py-1 border rounded text-sm" id="dec-font">A-</button>
-          <button class="px-2 py-1 border rounded text-sm" id="inc-font">A+</button>
-          <button class="px-2 py-1 border rounded text-sm" id="toggle-wide">阅读模式</button>
+        <div class="prose max-w-none" id="content" style="min-height:40vh;">
+          <p class="text-sm text-gray-400">加载章节中…</p>
         </div>
-        <div>
-          <button id="bookmark" class="px-3 py-1 border rounded">书签</button>
+
+        <div class="mt-6 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <label class="text-sm">字号</label>
+            <button class="px-2 py-1 border rounded text-sm" id="dec-font">A-</button>
+            <button class="px-2 py-1 border rounded text-sm" id="inc-font">A+</button>
+            <button class="px-2 py-1 border rounded text-sm" id="toggle-wide">阅读模式</button>
+          </div>
+          <div>
+            <button id="bookmark" class="px-3 py-1 border rounded">书签</button>
+          </div>
         </div>
-      </div>
 
-      <hr class="my-6" />
-      <section id="comments" class="mt-6">
-  <p class="text-gray-400">加载评论中...</p>
-</section>
+        <hr class="my-6" />
+        <section id="comments" class="mt-6">
+          <p class="text-gray-400">加载评论中...</p>
+        </section>
+      </article>
+    </main>
 
-    </article>
-  </main>
+    <footer class="mt-8 p-4 text-center text-sm text-gray-500">
+      <a href="gx/index.html" >更新日志</a>
+      © 2025 版权所有 | 设计：awealy & wyxrl & 鉞熙
+    </footer>
 
-  <footer class="mt-8 p-4 text-center text-sm text-gray-500">
-    <a href="gx/index.html" >更新日志</a>
-    © 2025 版权所有 | 设计：awealy
-  </footer>
-
-  <script src="assets/app.js"></script>
-</body>
+    <script src="assets/app.js"></script>
+  </body>
 </html>
-
-
-
-
-
-
-
-
-
-
