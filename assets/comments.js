@@ -1,272 +1,302 @@
-// ======== Supabase 初始化 ========
-const SUPABASE_URL = "https://cqmusijxssqzcqiztier.supabase.co"; // ← 改这里
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxbXVzaWp4c3NxemNxaXp0aWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzNzA1NjUsImV4cCI6MjA3Njk0NjU2NX0.JIXOR1i5q8llCyMncegMfO3jw5-1a4npB5ZOAD4jVSw";                        // ← 改这里
+// assets/comments.js (revamped)
+// 使用方法：确保在 HTML 中先加载 supabase SDK 并初始化 window.SUPABASE_CLIENT
+// 然后再加载此脚本。
 
-// 正确初始化 Supabase 客户端
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-// // -------------------------------------------------------------------
-
-// DOM
-const authorInput = document.getElementById("author");
-const chapterInput = document.getElementById("chapter-input");
-const contentInput = document.getElementById("content");
-const sendBtn = document.getElementById("send-btn");
-const clearDraftBtn = document.getElementById("clear-draft");
-const statusEl = document.getElementById("post-status");
-const commentsRoot = document.getElementById("comments-root");
-
-// 状态
-let bookSlug = window.BOOK_SLUG || null;
-let chapterPath = window.CHAPTER_PATH || null;
-let replyTo = null; // parent_id when replying
-
-// 自动识别章节：优先使用 window vars，否则使用 pathname
-function detectChapter() {
-  if (!chapterPath) {
-    chapterPath = window.CHAPTER_PATH || window.location.pathname || "";
-  }
-  if (!bookSlug) {
-    bookSlug = window.BOOK_SLUG || (chapterPath.split('/')[2] || 'unknown');
-  }
-  chapterInput.value = chapterPath || "";
-}
-detectChapter();
-
-// 本地草稿支持
-const DRAFT_KEY = `draft_${bookSlug || 'global'}`;
-function saveDraft() {
-  const d = { author: authorInput.value, chapter: chapterInput.value, content: contentInput.value };
-  localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
-  statusEl.textContent = "已保存草稿";
-}
-function loadDraft() {
-  const raw = localStorage.getItem(DRAFT_KEY);
-  if (!raw) return;
-  try {
-    const d = JSON.parse(raw);
-    authorInput.value = d.author || "";
-    chapterInput.value = d.chapter || chapterInput.value;
-    contentInput.value = d.content || "";
-    statusEl.textContent = "已恢复草稿";
-  } catch(e){}
-}
-loadDraft();
-setInterval(saveDraft, 10000); // 每10秒自动保存
-
-clearDraftBtn.addEventListener("click", () => {
-  localStorage.removeItem(DRAFT_KEY);
-  authorInput.value = "";
-  contentInput.value = "";
-  statusEl.textContent = "草稿已清空";
-});
-
-// 渲染单条评论（包含回复容器）
-function renderCommentNode(c) {
-  const time = new Date(c.created_at).toLocaleString();
-  return `
-  <div class="p-3 border rounded" data-cid="${c.id}">
-    <div class="flex justify-between items-start gap-2">
-      <div>
-        <div class="font-medium">${escapeHtml(c.author_name)}</div>
-        <div class="text-xs text-gray-500">${time}</div>
-      </div>
-      <div class="flex items-center gap-2 text-sm">
-        <button class="btn-like px-2 py-1 border rounded" data-id="${c.id}">❤ ${c.likes || 0}</button>
-        <button class="btn-reply px-2 py-1 border rounded" data-id="${c.id}">回复</button>
-      </div>
-    </div>
-    <div class="mt-2 text-gray-800">${escapeHtml(c.content)}</div>
-    <div class="mt-3" id="replies-${c.id}"></div>
-  </div>`;
-}
-
-// 递归构造嵌套树（把平坦数组变成树）
-function buildTree(rows) {
-  const map = new Map();
-  rows.forEach(r => map.set(r.id, {...r, children: []}));
-  const roots = [];
-  map.forEach(node => {
-    if (node.parent_id && map.has(node.parent_id)) {
-      map.get(node.parent_id).children.push(node);
-    } else {
-      roots.push(node);
-    }
-  });
-  // sort by created_at ascending
-  const sortFn = (a,b) => new Date(a.created_at) - new Date(b.created_at);
-  const walkSort = (arr) => {
-    arr.sort(sortFn);
-    arr.forEach(n => walkSort(n.children));
-  };
-  walkSort(roots);
-  return roots;
-}
-
-// 渲染树到 DOM（支持多层嵌套）
-function renderTree(tree) {
-  if (!tree || tree.length===0) {
-    commentsRoot.innerHTML = `<p class="text-gray-400">还没有评论，成为第一个吧！</p>`;
-    return;
-  }
-  commentsRoot.innerHTML = tree.map(node => renderNodeWithChildren(node)).join('');
-  attachHandlers();
-}
-function renderNodeWithChildren(node, level=0) {
-  const indentClass = level ? 'reply-box' : '';
-  let html = `<div class="${indentClass} mb-2">${renderCommentNode(node)}`;
-  if (node.children && node.children.length) {
-    html += `<div class="mt-2 space-y-2">` + node.children.map(child => renderNodeWithChildren(child, level+1)).join('') + `</div>`;
-  }
-  html += `</div>`;
-  return html;
-}
-
-// 加载评论（仅加载对应书籍/章节，显示 approved = true）
-async function loadComments() {
-  chapterPath = chapterInput.value.trim() || chapterPath;
-  bookSlug = bookSlug || (chapterPath.split('/')[2] || 'unknown');
-  if (!chapterPath) {
-    commentsRoot.innerHTML = `<p class="text-gray-400">请先输入或打开章节页面以查看该章节评论。</p>`;
-    return;
-  }
-
-  const { data, error } = await supabase
-    .from('comments')
-    .select('*')
-    .eq('book_slug', bookSlug)
-    .eq('chapter_path', chapterPath)
-    .eq('approved', true)
-    .order('created_at', { ascending: true });
-
-  if (error) {
-    console.error('加载评论失败：', error);
-    commentsRoot.innerHTML = `<p class="text-red-500">评论加载失败，请检查 Supabase 配置。</p>`;
-    return;
-  }
-
-  const tree = buildTree(data);
-  renderTree(tree);
-}
-
-// 发送评论或回复
-sendBtn.addEventListener('click', async () => {
-  const author = authorInput.value.trim();
-  const content = contentInput.value.trim();
-  chapterPath = chapterInput.value.trim() || chapterPath;
-  if (!author || !content || !chapterPath) { alert('请填写昵称、章节与内容'); return; }
-
-  sendBtn.disabled = true;
-  statusEl.textContent = '提交中...';
-
-  const payload = {
-    book_slug: bookSlug || (chapterPath.split('/')[2] || 'unknown'),
-    chapter_path: chapterPath,
-    parent_id: replyTo || null,
-    author_name: author,
-    content: content,
-    approved: true  // 若需要审核可改为 false
-  };
-
-  const { data, error } = await supabase.from('comments').insert([payload]);
-
-  if (error) {
-    console.error('提交失败', error);
-    alert('提交失败：'+ (error.message || JSON.stringify(error)));
-    statusEl.textContent = '提交失败';
-  } else {
-    contentInput.value = '';
-    replyTo = null;
-    statusEl.textContent = '提交成功';
-    // 如果实时订阅生效，则会自动出现；若不依赖实时，可手动 reload
-    // loadComments();
-  }
-  sendBtn.disabled = false;
-});
-
-// 绑定回复/like 按钮事件
-function attachHandlers() {
-  // reply
-  document.querySelectorAll('.btn-reply').forEach(btn => {
-    btn.onclick = (e) => {
-      const cid = parseInt(btn.dataset.id);
-      // 在该评论下插入一个临时回复输入框（单次）
-      const parentEl = btn.closest('[data-cid]');
-      if (!parentEl) return;
-      // 防止重复
-      if (parentEl.querySelector('.reply-input')) return;
-      const box = document.createElement('div');
-      box.className = 'reply-input mt-2';
-      box.innerHTML = `
-        <textarea class="w-full border p-2 rounded mb-2 reply-text" rows="2" placeholder="回复..."></textarea>
-        <div class="flex gap-2">
-          <button class="px-3 py-1 bg-indigo-600 text-white rounded send-reply">发送</button>
-          <button class="px-3 py-1 border rounded cancel-reply">取消</button>
-        </div>`;
-      parentEl.appendChild(box);
-      box.querySelector('.cancel-reply').onclick = () => box.remove();
-      box.querySelector('.send-reply').onclick = async () => {
-        const txt = box.querySelector('.reply-text').value.trim();
-        if (!txt) return alert('请输入回复内容');
-        // 插入 reply
-        const author = authorInput.value.trim() || '匿名';
-        const payload = {
-          book_slug: bookSlug || (chapterPath.split('/')[2] || 'unknown'),
-          chapter_path: chapterPath,
-          parent_id: cid,
-          author_name: author,
-          content: txt,
-          approved: true
-        };
-        const { error } = await supabase.from('comments').insert([payload]);
-        if (error) {
-          alert('回复失败：' + (error.message || JSON.stringify(error)));
-        } else {
-          box.remove();
-          statusEl.textContent = '回复已提交';
-          // loadComments(); // 如果你没有订阅实时，可手动刷新
-        }
-      };
-    };
-  });
-
-  // like
-  document.querySelectorAll('.btn-like').forEach(btn => {
-    btn.onclick = async () => {
-      const id = parseInt(btn.dataset.id);
-      // 尝试调用 RPC（如果已部署），若不支持则用 update（非原子，生产建议用 RPC）
-      try {
-        await supabase.rpc('increment_comment_likes', { cid: id });
-      } catch(err) {
-        // 回退到简单 update（注意并发）
-        await supabase.from('comments').update({ likes: (parseInt(btn.textContent.replace(/[^\d]/g,'')) || 0) + 1 }).eq('id', id);
+(function () {
+  // 等待 DOM ready
+  document.addEventListener('DOMContentLoaded', () => {
+    // 检查全局 supabase 客户端
+    if (!window.SUPABASE_CLIENT) {
+      console.error('[comments.js] SUPABASE_CLIENT 未找到。请在 HTML 中先初始化 Supabase（见 README）。');
+      // 在页面显示友好提示
+      const cs = document.getElementById('comments') || document.body;
+      if (cs) {
+        cs.innerHTML = `<div class="p-4 bg-yellow-50 text-yellow-700 rounded">评论功能未初始化，请联系管理员 (SUPABASE_CLIENT 未找到)。</div>`;
       }
-    };
-  });
-}
-
-// 转义输出
-function escapeHtml(s) {
-  if (!s) return '';
-  return String(s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
-
-// ------------------ 实时订阅：监听 comments 的 INSERT 和 UPDATE ------------------
-const channel = supabase.channel('public:comments')
-  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments' }, payload => {
-    // 只处理与当前章节相关且 approved = true 的评论
-    const row = payload.new;
-    if (row.approved && row.book_slug === (bookSlug || (row.book_slug)) && row.chapter_path === (chapterPath || row.chapter_path)) {
-      // 简单：重新加载整棵树（也可做增量插入）
-      loadComments();
+      return;
     }
-  })
-  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'comments' }, payload => {
-    // 更新（例如管理员批准 or 点赞数变化）
-    loadComments();
-  })
-  .subscribe();
 
-// 启动时加载
-loadComments();
+    const supabase = window.SUPABASE_CLIENT;
+
+    // DOM 元素（若页面没有这些元素，脚本会优雅降级）
+    const commentsRoot = document.querySelector('#comments-root') || document.getElementById('comments');
+    const authorInput = document.getElementById('author') || null;
+    const chapterInput = document.getElementById('chapter-input') || null;
+    const contentInput = document.getElementById('content') || null;
+    const sendBtn = document.getElementById('send-btn') || null;
+    const clearDraftBtn = document.getElementById('clear-draft') || null;
+    const statusEl = document.getElementById('post-status') || null;
+
+    // fallback create simple UI if not present
+    function ensureComposer() {
+      if (sendBtn && contentInput && authorInput) return;
+      // create a minimal composer under commentsRoot
+      if (!commentsRoot) return;
+      commentsRoot.innerHTML = `
+        <div id="composer" class="bg-white p-4 rounded shadow-sm mb-4">
+          <input id="author" placeholder="昵称（必填）" class="w-full border rounded px-2 py-1 mb-2" />
+          <input id="chapter-input" placeholder="章节（可选）" class="w-full border rounded px-2 py-1 mb-2" />
+          <textarea id="content" rows="3" placeholder="写下你的评论..." class="w-full border rounded px-2 py-1 mb-2"></textarea>
+          <div class="flex gap-2">
+            <button id="send-btn" class="px-3 py-1 bg-indigo-600 text-white rounded">发布</button>
+            <button id="clear-draft" class="px-3 py-1 border rounded">清空</button>
+            <span id="post-status" class="text-sm text-gray-500 self-center ml-2"></span>
+          </div>
+        </div>
+        <div id="comments-list" class="space-y-3"></div>
+      `;
+      // rebind
+      bindAfterCreate();
+    }
+
+    function bindAfterCreate() {
+      // update pointers to newly created elements
+      window._authorInput = document.getElementById('author');
+      window._chapterInput = document.getElementById('chapter-input');
+      window._contentInput = document.getElementById('content');
+      window._sendBtn = document.getElementById('send-btn');
+      window._clearDraftBtn = document.getElementById('clear-draft');
+      window._statusEl = document.getElementById('post-status');
+      // assign to local variables
+      authorInput = window._authorInput;
+      chapterInput = window._chapterInput;
+      contentInput = window._contentInput;
+      sendBtn = window._sendBtn;
+      clearDraftBtn = window._clearDraftBtn;
+      statusEl = window._statusEl;
+      commentsRoot = document.getElementById('comments-list') || commentsRoot;
+    }
+
+    // If composer missing create it
+    ensureComposer();
+
+    // Now assign again (in case created)
+    const _author = document.getElementById('author');
+    const _chapter = document.getElementById('chapter-input');
+    const _content = document.getElementById('content');
+    const _send = document.getElementById('send-btn');
+    const _clear = document.getElementById('clear-draft');
+    const _status = document.getElementById('post-status');
+
+    // local references
+    const authorEl = _author || authorInput;
+    const chapterEl = _chapter || chapterInput;
+    const contentEl = _content || contentInput;
+    const sendButton = _send || sendBtn;
+    const clearButton = _clear || clearDraftBtn;
+    const statusElLocal = _status || statusEl;
+
+    // state
+    let bookSlug = window.BOOK_SLUG || null;
+    let chapterPath = window.CHAPTER_PATH || null;
+    let replyTo = null;
+
+    // detect chapter if empty
+    function detectChapter() {
+      if (!chapterPath) chapterPath = window.CHAPTER_PATH || location.pathname || '';
+      if (!bookSlug) bookSlug = window.BOOK_SLUG || (chapterPath.split('/')[2] || 'unknown');
+      if (chapterEl) chapterEl.value = chapterPath || '';
+    }
+    detectChapter();
+
+    // helper: escape
+    function escapeHtml(str){ if(!str) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // render single comment node
+    function renderComment(c) {
+      const time = new Date(c.created_at).toLocaleString();
+      return `
+        <div class="p-3 border rounded" data-id="${c.id}">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="font-medium">${escapeHtml(c.author_name)}</div>
+              <div class="text-xs text-gray-500">${time}</div>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn-like px-2 py-1 border rounded" data-id="${c.id}">❤ ${c.likes||0}</button>
+              <button class="btn-reply px-2 py-1 border rounded" data-id="${c.id}">回复</button>
+            </div>
+          </div>
+          <div class="mt-2 text-gray-800">${escapeHtml(c.content)}</div>
+          <div id="replies-${c.id}" class="mt-2 ml-4"></div>
+        </div>
+      `;
+    }
+
+    // build tree
+    function buildTree(rows) {
+      const map = new Map(); rows.forEach(r => map.set(r.id, {...r, children: []}));
+      const roots = [];
+      map.forEach(node => {
+        if (node.parent_id && map.has(node.parent_id)) map.get(node.parent_id).children.push(node);
+        else roots.push(node);
+      });
+      const sortFn = (a,b)=> new Date(a.created_at)-new Date(b.created_at);
+      function sortRec(a){ a.sort(sortFn); a.forEach(n=>sortRec(n.children)); }
+      sortRec(roots);
+      return roots;
+    }
+
+    // render tree into commentsRoot (which should point to list container)
+    async function renderTreeToDom(rows) {
+      const rootEl = document.getElementById('comments-list') || commentsRoot;
+      if (!rootEl) return;
+      if (!rows || rows.length===0) {
+        rootEl.innerHTML = `<p class="text-gray-400">还没有评论，成为第一个吧！</p>`;
+        return;
+      }
+      const html = rows.map(node => renderNodeRec(node)).join('');
+      rootEl.innerHTML = html;
+      attachHandlers(); // bind reply/like
+    }
+
+    function renderNodeRec(node, level=0) {
+      const indentClass = level? 'pl-4 border-l ml-2':'';
+      let h = `<div class="${indentClass} mb-3">${renderComment(node)}`;
+      if (node.children && node.children.length) {
+        h += node.children.map(child => renderNodeRec(child, level+1)).join('');
+      }
+      h += `</div>`;
+      return h;
+    }
+
+    // load comments for current chapter/book
+    async function loadComments() {
+      chapterPath = (chapterEl && chapterEl.value.trim()) || chapterPath;
+      bookSlug = bookSlug || (chapterPath.split('/')[2] || 'unknown');
+      if (!chapterPath) {
+        const rootEl = document.getElementById('comments-list') || commentsRoot;
+        if (rootEl) rootEl.innerHTML = `<p class="text-gray-400">请填写章节路径以查看评论（或在章节页面打开社区）。</p>`;
+        return;
+      }
+      const { data, error } = await supabase.from('comments')
+        .select('*')
+        .eq('book_slug', bookSlug)
+        .eq('chapter_path', chapterPath)
+        .eq('approved', true)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('加载评论失败', error);
+        const rootEl = document.getElementById('comments-list') || commentsRoot;
+        if (rootEl) rootEl.innerHTML = `<p class="text-red-500">评论加载失败（检查 Supabase 配置与 RLS 策略）。</p>`;
+        return;
+      }
+      const tree = buildTree(data);
+      renderTreeToDom(tree);
+    }
+
+    // post comment
+    async function postComment(parentId=null, textOverride=null) {
+      const author = (authorEl && authorEl.value.trim()) || '匿名';
+      const content = textOverride || (contentEl && contentEl.value.trim());
+      chapterPath = (chapterEl && chapterEl.value.trim()) || chapterPath;
+      if (!content || !chapterPath) { alert('请填写章节与内容'); return; }
+
+      const payload = {
+        book_slug: bookSlug || (chapterPath.split('/')[2] || 'unknown'),
+        chapter_path: chapterPath,
+        parent_id: parentId || null,
+        author_name: author,
+        content,
+        approved: true
+      };
+
+      // Insert
+      const { data, error } = await supabase.from('comments').insert([payload]);
+      if (error) {
+        console.error('提交评论失败', error);
+        alert('提交失败：' + (error.message || JSON.stringify(error)));
+        return;
+      }
+      // Success: clear content & reload (if realtime active it will come)
+      if (contentEl) contentEl.value = '';
+      if (statusElLocal) statusElLocal.textContent = '提交成功';
+      // call load
+      await loadComments();
+    }
+
+    // attach handlers to like/reply buttons
+    function attachHandlers() {
+      document.querySelectorAll('.btn-reply').forEach(btn => {
+        btn.onclick = () => {
+          const cid = parseInt(btn.dataset.id);
+          const parentEl = btn.closest('[data-id]');
+          if (!parentEl) return;
+          if (parentEl.querySelector('.reply-area')) return;
+          const box = document.createElement('div');
+          box.className = 'reply-area mt-2';
+          box.innerHTML = `
+            <textarea class="w-full border p-2 rounded mb-2 reply-text" rows="2" placeholder="回复..."></textarea>
+            <div class="flex gap-2">
+              <button class="px-3 py-1 bg-indigo-600 text-white rounded send-reply">发送</button>
+              <button class="px-3 py-1 border rounded cancel-reply">取消</button>
+            </div>
+          `;
+          parentEl.appendChild(box);
+          box.querySelector('.cancel-reply').onclick = ()=>box.remove();
+          box.querySelector('.send-reply').onclick = async () => {
+            const txt = box.querySelector('.reply-text').value.trim();
+            if (!txt) return alert('请输入回复内容');
+            await postComment(cid, txt);
+            box.remove();
+          };
+        };
+      });
+
+      document.querySelectorAll('.btn-like').forEach(btn => {
+        btn.onclick = async () => {
+          const id = parseInt(btn.dataset.id);
+          try {
+            await supabase.rpc('increment_comment_likes', { cid: id });
+          } catch (err) {
+            // fallback update
+            try {
+              await supabase.from('comments').update({ likes: (parseInt(btn.textContent.replace(/[^\d]/g,''))||0)+1 }).eq('id', id);
+            } catch(e){ console.error(e); }
+          }
+        };
+      });
+    }
+
+    // bind composer buttons
+    if (sendButton) sendButton.addEventListener('click', () => postComment(null));
+    if (clearButton) clearButton.addEventListener('click', () => {
+      if (contentEl) contentEl.value = '';
+      if (authorEl) authorEl.value = '';
+      if (statusElLocal) statusElLocal.textContent = '草稿已清空';
+    });
+
+    // Realtime subscription (safe: only reload when relevant)
+    try {
+      const channel = supabase.channel('comments_channel')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments' }, payload => {
+          const row = payload.new;
+          if (!row) return;
+          // if matches current chapter
+          const matchBook = (row.book_slug === (bookSlug || row.book_slug));
+          const matchChap = (row.chapter_path === (chapterPath || row.chapter_path));
+          if (matchBook && matchChap && row.approved) loadComments();
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'comments' }, payload => {
+          loadComments();
+        })
+        .subscribe();
+    } catch (e) {
+      console.warn('实时订阅失败（可能 Supabase 项目未启用 publications）', e);
+    }
+
+    // load initially
+    loadComments();
+
+    // auto-save draft (optional)
+    const DRAFT_KEY = `draft_${bookSlug || 'global'}`;
+    function saveDraft(){ 
+      const d={author: (authorEl&&authorEl.value)||'', chapter: (chapterEl&&chapterEl.value)||'', content: (contentEl&&contentEl.value)||''};
+      try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); }catch(e){}
+    }
+    function loadDraft(){ try{ const r=localStorage.getItem(DRAFT_KEY); if(r){ const o=JSON.parse(r); if(authorEl) authorEl.value=o.author||''; if(chapterEl) chapterEl.value=o.chapter||''; if(contentEl) contentEl.value=o.content||''; if(statusElLocal) statusElLocal.textContent='已恢复草稿'; } }catch(e){} }
+    loadDraft();
+    setInterval(saveDraft, 10000);
+  });
+})();
