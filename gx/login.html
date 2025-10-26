@@ -1,96 +1,39 @@
-<!DOCTYPE html>
-<html lang="zh">
+<!doctype html>
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>登录 | 小说社区</title>
-  <style>
-    body {
-      font-family: "Microsoft YaHei", sans-serif;
-      background: linear-gradient(135deg, #e0eafc, #cfdef3);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .login-container {
-      background: white;
-      padding: 2rem;
-      border-radius: 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      text-align: center;
-      width: 300px;
-      animation: fadeIn 0.8s ease;
-    }
-    h2 { margin-bottom: 20px; color: #333; }
-    button {
-      width: 100%;
-      margin: 8px 0;
-      padding: 10px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover { opacity: 0.85; }
-    #login-github { background: #333; color: white; }
-    #login-google { background: #ea4335; color: white; }
-    #login-qq { background: #12b7f5; color: white; }
-    #back-home {
-      background: #888;
-      color: white;
-      margin-top: 12px;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>登录 — 同人文</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
 </head>
-<body>
-  <div class="login-container">
-    <h2>登录小说社区</h2>
-    <button id="login-github">使用 GitHub 登录</button>
-    <button id="login-google">使用 Google 登录</button>
-    <button id="login-qq">使用 QQ 登录</button>
-    <button id="back-home">返回主页</button>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
+  <div class="bg-white p-6 rounded shadow w-[360px]">
+    <h2 class="text-xl font-semibold mb-4">登录 同人文 平台</h2>
+    <div class="space-y-2">
+      <button id="gh" class="w-full py-2 bg-gray-800 text-white rounded">使用 GitHub 登录</button>
+      <button id="google" class="w-full py-2 bg-red-500 text-white rounded">使用 Google 登录</button>
+      <button id="qq" class="w-full py-2 bg-blue-400 text-white rounded">使用 QQ 登录</button>
+    </div>
+    <div class="mt-4 text-sm text-gray-500">
+      登录后你可以发表评论、私信与加入群聊（如已启用）。
+    </div>
   </div>
 
-  <!-- 引入 Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <script>
-    // === 1️⃣ 替换为你自己的 Supabase 项目信息 ===
-    const SUPABASE_URL = "https://cqmusijxssqzcqiztier.supabase.co";  // ← 你的 Supabase 项目 URL
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxbXVzaWp4c3NxemNxaXp0aWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzNzA1NjUsImV4cCI6MjA3Njk0NjU2NX0.JIXOR1i5q8llCyMncegMfO3jw5-1a4npB5ZOAD4jVSw";      // ← 你的 Supabase anon key
-
+    // 确保和 index.html 使用同一套 SUPABASE URL/KEY
+    const SUPABASE_URL = "https://cqmusijxssqzcqiztier.supabase.co"; // 替换
+    const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY_HERE";           // 替换
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // === 2️⃣ 登录功能 ===
-    document.getElementById('login-github').onclick = async () => {
-      await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: { redirectTo: window.location.origin + '/xiaoshuo/index.html' }
-      });
+    document.getElementById('gh').onclick = () => {
+      supabase.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: window.location.origin + '/xiaoshuo/index.html' }});
     };
-    document.getElementById('login-google').onclick = async () => {
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin + '/xiaoshuo/index.html' }
-      });
+    document.getElementById('google').onclick = () => {
+      supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/xiaoshuo/index.html' }});
     };
-    document.getElementById('login-qq').onclick = async () => {
-      await supabase.auth.signInWithOAuth({
-        provider: 'qq',
-        options: { redirectTo: window.location.origin + '/xiaoshuo/index.html' }
-      });
-    };
-
-    // === 3️⃣ 返回主页按钮 ===
-    document.getElementById('back-home').onclick = () => {
-      window.location.href = '../index.html';
+    document.getElementById('qq').onclick = () => {
+      supabase.auth.signInWithOAuth({ provider: 'qq', options: { redirectTo: window.location.origin + '/xiaoshuo/index.html' }});
     };
   </script>
 </body>
