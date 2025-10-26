@@ -10,30 +10,29 @@
 <body class="bg-gray-50 flex items-center justify-center min-h-screen">
   <div class="bg-white p-6 rounded shadow w-[360px]">
     <h2 class="text-xl font-semibold mb-4">登录 同人文 平台</h2>
-    <div class="space-y-2">
+    <div class="space-y-3">
       <button id="gh" class="w-full py-2 bg-gray-800 text-white rounded">使用 GitHub 登录</button>
       <button id="google" class="w-full py-2 bg-red-500 text-white rounded">使用 Google 登录</button>
       <button id="qq" class="w-full py-2 bg-blue-400 text-white rounded">使用 QQ 登录</button>
     </div>
     <div class="mt-4 text-sm text-gray-500">
-      登录后你可以发表评论、私信与加入群聊（如已启用）。
+      登录后可发表评论、私信与加入群聊（如果启用）。
     </div>
   </div>
 
   <script>
-    // 确保和 index.html 使用同一套 SUPABASE URL/KEY
-    const SUPABASE_URL = "https://cqmusijxssqzcqiztier.supabase.co"; // 替换
-    const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY_HERE";           // 替换
+    const SUPABASE_URL = "https://cqmusijxssqzcqiztier.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_5sT9N2eNdgeah_8xlpSnTQ_PGbNDpr9";
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    document.getElementById('gh').onclick = () => {
-      supabase.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: window.location.origin + '/xiaoshuo/index.html' }});
+    document.getElementById('gh').onclick = async () => {
+      await supabase.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: window.location.origin + '/xiaoshuo/index.html' }});
     };
-    document.getElementById('google').onclick = () => {
-      supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/xiaoshuo/index.html' }});
+    document.getElementById('google').onclick = async () => {
+      await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/xiaoshuo/index.html' }});
     };
-    document.getElementById('qq').onclick = () => {
-      supabase.auth.signInWithOAuth({ provider: 'qq', options: { redirectTo: window.location.origin + '/xiaoshuo/index.html' }});
+    document.getElementById('qq').onclick = async () => {
+      await supabase.auth.signInWithOAuth({ provider: 'qq', options: { redirectTo: window.location.origin + '/xiaoshuo/index.html' }});
     };
   </script>
 </body>
